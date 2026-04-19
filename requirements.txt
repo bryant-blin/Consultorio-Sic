@@ -6,6 +6,6 @@ requests
 beautifulsoup4
 openpyxl
 pyTelegramBotAPI
-telegram-bot-calendar
+python-telegram-bot-calendar
 gunicorn
 python-dotenv
