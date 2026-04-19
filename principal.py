@@ -10,6 +10,7 @@ from datetime import datetime, date, time
 import os
 import sys
 import urllib.parse
+print("[LOG]: Iniciando importación de principal.py...")
 try:
     import webview
 except ImportError:
@@ -60,10 +61,19 @@ app = Flask(__name__,
 database_url = os.environ.get('DATABASE_URL')
 
 if database_url:
-    # Ajuste para Render/Heroku que usan postgres:// en lugar de postgresql://
+    # Ajuste para Render/Heroku y forzar SSL si es necesario
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
+    
+    # Añadir sslmode=require si no está presente (común en despliegues nube)
+    if "sslmode" not in database_url:
+        if "?" in database_url:
+            database_url += "&sslmode=require"
+        else:
+            database_url += "?sslmode=require"
+            
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    print("[SISTEMA]: Configurada Base de Datos en la Nube.")
 else:
     # Configuración local manual
     user = 'postgres'
@@ -98,28 +108,25 @@ def seed_roles():
 
 
 # ═══════════════════════════════════════════════════════════
-# INICIALIZACIÓN DE LA APLICACIÓN
+# INICIALIZACIÓN DIFERIDA (Para evitar Timeouts en Render)
 # ═══════════════════════════════════════════════════════════
 
-def inicializar_todo():
-    with app.app_context():
-        try:
-            print("[SISTEMA]: Verificando conexión a Base de Datos...")
-            db.create_all()
-            print("[SISTEMA]: Base de Datos lista.")
-            
-            print("[SISTEMA]: Inicializando roles...")
-            seed_roles()
-            
-            print("[SISTEMA]: Iniciando hilo del Bot de Telegram...")
-            start_bot_thread(app, db, Cita, Historial_Medico)
-            print("[SISTEMA]: Bot de Telegram en ejecución.")
-            
-        except Exception as e:
-            print(f"[ERROR]: Fallo en la inicialización: {e}")
+_inicializado = False
 
-# Llamar a la inicialización antes de que el servidor atienda peticiones
-inicializar_todo()
+@app.before_request
+def inicializacion_unica():
+    global _inicializado
+    if not _inicializado:
+        try:
+            print("[SISTEMA]: Realizando inicialización en primera petición...")
+            db.create_all()
+            seed_roles()
+            start_bot_thread(app, db, Cita, Historial_Medico)
+            print("[SISTEMA]: Inicialización completada con éxito.")
+            _inicializado = True
+        except Exception as e:
+            print(f"[ERROR CRÍTICO]: Fallo en inicialización: {e}")
+            _inicializado = True # Evitar reintentos infinitos si falla
 
 
 # ═══════════════════════════════════════════════════════════
