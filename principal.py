@@ -94,12 +94,29 @@ def seed_roles():
     db.session.commit()
 
 
-# Crear tablas y sembrar roles al iniciar
-with app.app_context():
-    db.create_all()
-    seed_roles()
-    # Iniciar el Bot de Telegram en un hilo separado
-    start_bot_thread(app, db, Cita, Historial_Medico)
+# ═══════════════════════════════════════════════════════════
+# INICIALIZACIÓN DE LA APLICACIÓN
+# ═══════════════════════════════════════════════════════════
+
+def inicializar_todo():
+    with app.app_context():
+        try:
+            print("[SISTEMA]: Verificando conexión a Base de Datos...")
+            db.create_all()
+            print("[SISTEMA]: Base de Datos lista.")
+            
+            print("[SISTEMA]: Inicializando roles...")
+            seed_roles()
+            
+            print("[SISTEMA]: Iniciando hilo del Bot de Telegram...")
+            start_bot_thread(app, db, Cita, Historial_Medico)
+            print("[SISTEMA]: Bot de Telegram en ejecución.")
+            
+        except Exception as e:
+            print(f"[ERROR]: Fallo en la inicialización: {e}")
+
+# Llamar a la inicialización antes de que el servidor atienda peticiones
+inicializar_todo()
 
 
 # ═══════════════════════════════════════════════════════════
