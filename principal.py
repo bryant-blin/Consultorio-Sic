@@ -10,7 +10,10 @@ from datetime import datetime, date, time
 import os
 import sys
 import urllib.parse
-import webview
+try:
+    import webview
+except ImportError:
+    webview = None
 import uuid
 import requests
 from bs4 import BeautifulSoup

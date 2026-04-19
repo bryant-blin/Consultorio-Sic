@@ -9,4 +9,3 @@ pyTelegramBotAPI
 telegram-bot-calendar
 gunicorn
 python-dotenv
-pywebview
