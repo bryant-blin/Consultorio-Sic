@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Gestión de Usuarios | Sistema SIC{% endblock %}
+
+{% block content %}
+<div class="fadeIn">
+    <div class="page-header">
+        <div>
+            <h1>Gestión de Usuarios</h1>
+            <p>Control de accesos y cuentas del sistema</p>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for login, usuario, rol in usuarios %}
+                <tr>
+                    <td class="td-bold">
+                        <span style="display:flex;align-items:center;gap:8px;">
+                            <i class='bx bx-user-circle' style="font-size:20px;color:var(--primary);"></i>
+                            {{ login.usuario }}
+                            {% if login.id_login == current_user.id_login %}
+                            <span style="font-size:10px;background:rgba(16,185,129,0.15);color:#10b981;border-radius:4px;padding:2px 6px;">Tú</span>
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>{{ usuario.nombres }} {{ usuario.apellidos }}</td>
+                    <td class="td-blue">{{ usuario.correo_electronico }}</td>
+                    <td>
+                        <span style="background:rgba(99,102,241,0.15);color:#818cf8;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;">
+                            {{ rol.nombre }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if login.activo %}
+                        <span class="badge badge-confirmed">Activo</span>
+                        {% else %}
+                        <span class="badge badge-cancelled">Bloqueado</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <!-- Botón Editar -->
+                            <button class="btn btn-icon btn-outline" title="Editar"
+                                onclick="abrirEditar(
+                                    '{{ login.id_login }}',
+                                    '{{ login.usuario }}',
+                                    '{{ usuario.nombres }}',
+                                    '{{ usuario.apellidos }}',
+                                    '{{ usuario.correo_electronico }}',
+                                    '{{ login.id_rol }}'
+                                )">
+                                <i class='bx bx-edit-alt'></i>
+                            </button>
+
+                            <!-- Botón Bloquear / Desbloquear -->
+                            {% if login.id_login != current_user.id_login %}
+                            <a href="{{ url_for('bloquear_usuario', id=login.id_login) }}"
+                                class="btn btn-icon {% if login.activo %}btn-outline{% else %}btn-success{% endif %}"
+                                title="{% if login.activo %}Bloquear{% else %}Desbloquear{% endif %}"
+                                style="{% if login.activo %}color:#f59e0b;border-color:rgba(245,158,11,0.3);{% else %}background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;{% endif %}"
+                                onclick="return confirm('¿{{ 'Bloquear' if login.activo else 'Desbloquear' }} al usuario {{ login.usuario }}?')">
+                                <i class='bx bx-{{ "lock" if login.activo else "lock-open" }}'></i>
+                            </a>
+
+                            <!-- Botón Eliminar -->
+                            <a href="{{ url_for('eliminar_usuario', id=login.id_login) }}"
+                                class="btn btn-icon btn-danger" title="Eliminar"
+                                onclick="return confirm('⚠️ ¿Eliminar permanentemente al usuario {{ login.usuario }}? Esta acción no se puede deshacer.')">
+                                <i class='bx bx-trash'></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Editar Usuario -->
+<div id="modalEditarUsuario" class="modal-overlay">
+    <div class="modal-box">
+        <h2>Editar Usuario</h2>
+        <form id="formEditarUsuario" method="POST">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nombres</label>
+                    <input type="text" name="nombres" id="eu_nombres">
+                </div>
+                <div class="form-group">
+                    <label>Apellidos</label>
+                    <input type="text" name="apellidos" id="eu_apellidos">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Correo Electrónico</label>
+                <input type="email" name="correo" id="eu_correo">
+            </div>
+            <div class="form-group">
+                <label>Nombre de Usuario</label>
+                <input type="text" name="usuario" id="eu_usuario">
+            </div>
+            <div class="form-group">
+                <label>Nueva Contraseña <span style="color:var(--text-muted);font-size:12px;">(dejar vacío para no cambiar)</span></label>
+                <input type="password" name="password" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label>Rol</label>
+                <select name="id_rol" id="eu_rol">
+                    {% for rol in roles %}
+                    <option value="{{ rol.id_rol }}">{{ rol.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                <button type="button" onclick="cerrarEditar()" class="btn btn-outline">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function abrirEditar(id, usuario, nombres, apellidos, correo, rol) {
+        document.getElementById('formEditarUsuario').action = '/usuarios/editar/' + id;
+        document.getElementById('eu_usuario').value = usuario;
+        document.getElementById('eu_nombres').value = nombres;
+        document.getElementById('eu_apellidos').value = apellidos;
+        document.getElementById('eu_correo').value = correo;
+        document.getElementById('eu_rol').value = rol;
+        document.getElementById('modalEditarUsuario').style.display = 'block';
+    }
+
+    function cerrarEditar() {
+        document.getElementById('modalEditarUsuario').style.display = 'none';
+    }
+
+    window.onclick = (e) => {
+        if (e.target === document.getElementById('modalEditarUsuario')) cerrarEditar();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,225 @@
+/* ═══════════════════════════════════════════════════════════
+   REGISTRO | Sistema SIC - Diseño Premium Dark Verde
+   ═══════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --bg: #0f1014;
+    --card: #16181d;
+    --card-border: rgba(255, 255, 255, 0.07);
+    --primary: #10b981;
+    --primary-hover: #059669;
+    --primary-glow: rgba(16, 185, 129, 0.25);
+    --text: #f1f5f9;
+    --text-muted: #64748b;
+    --input-bg: #0d0f13;
+    --input-border: rgba(255, 255, 255, 0.08);
+    --radius: 16px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background: var(--bg);
+    background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(16, 185, 129, 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(5, 150, 105, 0.04) 0%, transparent 50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    color: var(--text);
+    padding: 40px 20px;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.07), transparent 70%);
+    top: -100px;
+    right: -100px;
+    pointer-events: none;
+}
+
+.contenedor-registro {
+    width: 100%;
+    max-width: 500px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 48px 44px;
+    box-shadow:
+        0 0 0 1px rgba(16, 185, 129, 0.05),
+        0 25px 60px rgba(0, 0, 0, 0.6);
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Línea verde superior */
+.contenedor-registro::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #10b981, #059669, transparent);
+}
+
+h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 6px;
+    letter-spacing: -0.4px;
+}
+
+.subtitulo {
+    color: var(--text-muted);
+    text-align: center;
+    font-size: 13px;
+    margin-bottom: 32px;
+}
+
+.grupo-entrada {
+    margin-bottom: 18px;
+}
+
+.grupo-entrada label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.grupo-entrada input,
+.grupo-entrada select {
+    width: 100%;
+    padding: 13px 16px;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text);
+    transition: all 0.25s ease;
+    outline: none;
+}
+
+.grupo-entrada input::placeholder {
+    color: #334155;
+}
+
+.grupo-entrada input:focus,
+.grupo-entrada select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+    background: rgba(16, 185, 129, 0.03);
+}
+
+.grupo-entrada select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.1em;
+}
+
+.grupo-entrada select option {
+    background: #1e2530;
+    color: var(--text);
+}
+
+/* Campo de tipo error (Clave Maestra) */
+.grupo-entrada input[name="master_key"] {
+    border-color: rgba(239, 68, 68, 0.25);
+}
+
+.grupo-entrada input[name="master_key"]:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.boton-registro {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-top: 10px;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.boton-registro:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45);
+    filter: brightness(1.08);
+}
+
+.boton-registro:active {
+    transform: translateY(0);
+}
+
+.alerta {
+    margin-bottom: 20px;
+    padding: 13px 16px;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.08);
+    color: #f87171;
+    font-size: 13px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alerta::before { content: '⚠️'; }
+
+.enlaces-pie {
+    text-align: center;
+    margin-top: 28px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.enlaces-pie a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.enlaces-pie a:hover {
+    color: #34d399;
+    text-decoration: underline;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    margin: 24px 0;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

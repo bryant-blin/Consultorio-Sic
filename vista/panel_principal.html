@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block title %}Punto de Venta | Sistema SIC{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pos.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="pos-layout">
+    <input type="hidden" id="tasaBcvGlobal" value="{{ tasa_bcv }}">
+    <!-- PANEL IZQUIERDO: TICKET / CARRITO -->
+    <aside class="pos-ticket">
+        <div class="ticket-header">
+            <i class='bx bx-receipt'></i>
+            <span>Ticket de Venta</span>
+        </div>
+
+        <div class="ticket-patient">
+            <div style="display: flex; gap: 10px; align-items: stretch;">
+                <input type="text" id="pacienteNombre" placeholder="Seleccione un paciente..."
+                    value="{{paciente_previo}}" readonly
+                    style="cursor: default; background: var(--pos-surface-2); border-color: var(--pos-border);">
+
+                <a href="{{url_for('lista_pacientes', select='true')}}" class="btn-pacientes">
+                    PACIENTES
+                </a>
+            </div>
+        </div>
+
+        <div class="ticket-items" id="cartItems">
+            <div class="ticket-empty">
+                <i class='bx bx-shopping-bag'></i>
+                <p>Esperando items...</p>
+                <span class="empty-hint">Seleccione un examen del catalogo</span>
+            </div>
+        </div>
+
+        <div class="ticket-payment">
+            <div class="ticket-summary">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">Bs. 0.00</span>
+                </div>
+                <div class="summary-row summary-total">
+                    <span>TOTAL A PAGAR</span>
+                    <span id="total">Bs. 0.00</span>
+                </div>
+            </div>
+
+            <button class="btn-pay" onclick="abrirModalPago()" style="margin-top: 15px;">
+                <i class='bx bx-credit-card-front'></i> PAGO
+            </button>
+        </div>
+
+        <!-- Sidebar Numpad: Control de Cantidad (NUEVO) -->
+        <div class="sidebar-numpad">
+            <div class="numpad-row">
+                <button onclick="pressSideNumpad('7')">7</button>
+                <button onclick="pressSideNumpad('8')">8</button>
+                <button onclick="pressSideNumpad('9')">9</button>
+            </div>
+            <div class="numpad-row">
+                <button onclick="pressSideNumpad('4')">4</button>
+                <button onclick="pressSideNumpad('5')">5</button>
+                <button onclick="pressSideNumpad('6')">6</button>
+            </div>
+            <div class="numpad-row">
+                <button onclick="pressSideNumpad('1')">1</button>
+                <button onclick="pressSideNumpad('2')">2</button>
+                <button onclick="pressSideNumpad('3')">3</button>
+            </div>
+            <div class="numpad-row">
+                <button onclick="pressSideNumpad('0')">0</button>
+                <button class="btn-side-clear" onclick="pressSideNumpad('C')" title="Borrar Cantidad">C</button>
+                <button class="btn-side-delete" onclick="pressSideNumpad('DEL')" title="Eliminar Item">
+                    <i class='bx bx-trash'></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- PANEL DERECHO: CATALOGO -->
+    <main class="pos-catalog">
+        <div class="catalog-toolbar">
+            <input type="text" class="catalog-search" id="searchExam" placeholder="Buscar examen por nombre..."
+                onkeyup="filterExams()">
+        </div>
+
+        <div class="catalog-grid" id="examsGrid">
+            <div class="category-items">
+                {% for exam in examenes %}
+                <div class="exam-tile" data-category="{{ exam.id_categoria or 'none' }}"
+                    onclick="addToCart('{{ exam.id_examenes }}', `{{ exam.nombre_examen|e }}`, '{{ exam.precio|float * tasa_bcv }}')">
+                    <div class="tile-icon"><i class='bx bx-test-tube'></i></div>
+                    <div class="tile-name">{{ exam.nombre_examen }}</div>
+                    <div class="tile-price">Bs. {{ "%.2f"|format(exam.precio|float * tasa_bcv) }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Modal de Pago Premium -->
+<div id="paymentModal" class="pay-modal-overlay">
+    <div class="pay-modal-container fadeIn">
+        <!-- Encabezado -->
+        <div class="pay-modal-header">
+            <button class="btn-back" onclick="cerrarModalPago()">
+                <i class='bx bx-left-arrow-alt'></i> Regresar
+            </button>
+            <div class="header-msg">Ingrese el monto y el medio de pago</div>
+        </div>
+
+        <div class="pay-modal-body">
+            <!-- Izquierda: Métodos de Pago -->
+            <div class="pay-methods-grid">
+                <div class="method-card active" data-method="Bolivares" onclick="setMethodModal('Bolivares', this)">
+                    <div class="method-icon"><i class='bx bx-money'></i></div>
+                    <span>Bolívares</span>
+                </div>
+                <div class="method-card" data-method="Divisa" onclick="setMethodModal('Divisa', this)">
+                    <div class="method-icon"><i class='bx bx-dollar-circle'></i></div>
+                    <span>Divisa ($)</span>
+                </div>
+                <div class="method-card" data-method="Debito" onclick="setMethodModal('Debito', this)">
+                    <div class="method-icon"><i class='bx bx-credit-card'></i></div>
+                    <span>T. Débito</span>
+                </div>
+                <div class="method-card" data-method="Credito" onclick="setMethodModal('Credito', this)">
+                    <div class="method-icon"><i class='bx bx-credit-card-alt'></i></div>
+                    <span>T. Crédito</span>
+                </div>
+                <div class="method-card" data-method="Pago Movil" onclick="setMethodModal('Pago Movil', this)">
+                    <div class="method-icon"><i class='bx bx-mobile-vibration'></i></div>
+                    <span>Pago Móvil</span>
+                </div>
+            </div>
+
+            <!-- Centro: Desglose de Pagos (NUEVO para Mixtos) -->
+            <div class="pay-breakdown-section">
+                <div class="section-title">DESGLOSE DE PAGOS</div>
+                <div id="modalPaymentsList" class="payments-list">
+                    <div class="empty-payments">No hay pagos agregados</div>
+                </div>
+                <div class="payment-stats">
+                    <div class="stat-item">
+                        <span>Registrado:</span>
+                        <span id="modalSummaryRegistered">Bs. 0.00</span>
+                    </div>
+                    <div class="stat-item highlight" id="boxPending">
+                        <span id="labelPending">Pendiente:</span>
+                        <span id="modalSummaryPending">Bs. 0.00</span>
+                    </div>
+                </div>
+                <button id="btnMainAction" class="btn-add-payment" onclick="agregarPagoMixto()">
+                    <i class='bx bx-plus'></i> AÑADIR PAGO
+                </button>
+            </div>
+
+            <!-- Derecha: Pantalla y Teclado -->
+            <div class="pay-input-section">
+                <div class="pay-screen-large">
+                    <div class="screen-label-mini">MONTO RECIBIDO</div>
+                    <div class="screen-amount-total">
+                        <span class="currency-symbol">Bs.</span>
+                        <span id="modalPaidAmount">0.00</span>
+                    </div>
+                </div>
+                <div class="pay-numpad-large">
+                    <button onclick="pressNumModal('7')">7</button>
+                    <button onclick="pressNumModal('8')">8</button>
+                    <button onclick="pressNumModal('9')">9</button>
+                    <button onclick="pressNumModal('4')">4</button>
+                    <button onclick="pressNumModal('5')">5</button>
+                    <button onclick="pressNumModal('6')">6</button>
+                    <button onclick="pressNumModal('1')">1</button>
+                    <button onclick="pressNumModal('2')">2</button>
+                    <button onclick="pressNumModal('3')">3</button>
+                    <button onclick="pressNumModal('0')">0</button>
+                    <button onclick="pressNumModal('.')">.</button>
+                    <button class="btn-clear-modal" onclick="pressNumModal('C')">
+                        <i class='bx bx-backspace'></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra Inferior -->
+        <div class="pay-modal-footer">
+            <div class="footer-total-display">
+                <span class="total-label">TOTAL A PAGAR:</span>
+                <span id="modalTotalToPay">Bs. 0.00</span>
+            </div>
+            <div class="footer-actions">
+                <button class="btn-cancel-modal" onclick="cerrarModalPago()">CANCELAR</button>
+                <button class="btn-confirm-modal" onclick="finalizarVenta()">
+                    <i class='bx bx-check-double'></i> FINALIZAR VENTA
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE ÉXITO PREMIUM (CENTRADITO Y LIMPIO) -->
+<div id="modalSuccess" class="modal-overlay success-overlay">
+    <div class="modal-success-card">
+        <div class="success-icon-container">
+            <i class='bx bxs-check-circle'></i>
+        </div>
+        <h1 class="success-title">VENTA EXITOSA</h1>
+        
+        <div class="success-footer">
+            <p>Volviendo al inicio en <span id="successTimer">3</span>...</p>
+            <div class="progress-bar-bg">
+                <div id="successProgressBar" class="progress-bar-fill"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pos.js') }}"></script>
+{% endblock %}

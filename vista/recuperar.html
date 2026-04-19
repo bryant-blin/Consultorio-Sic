@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Contraseña | Sistema SIC</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/acceso.css') }}">
+</head>
+<body>
+    <div class="contenedor-principal">
+        <div class="tarjeta-login">
+            <div class="cabecera">
+                <h1>Sistema <span>SIC</span></h1>
+                <p>Ingresa tu correo y establece una nueva contraseña</p>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                {% for message in messages %}
+                  <div class="alerta">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('recuperar') }}" method="POST">
+                <div class="grupo-entrada">
+                    <label>Correo Electrónico</label>
+                    <input type="email" name="email" placeholder="correo@ejemplo.com" required>
+                </div>
+                <div class="grupo-entrada">
+                    <label>Nueva Contraseña</label>
+                    <input type="password" name="nueva_password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="boton-entrar">Actualizar Contraseña</button>
+            </form>
+
+            <div class="pie-login">
+                <a href="{{ url_for('auth_login') }}">← Volver al Inicio de Sesión</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

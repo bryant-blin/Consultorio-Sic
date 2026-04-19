@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Sistema SIC{% endblock %}
+
+{% block content %}
+<div class="fadeIn">
+    <div class="page-header">
+        <div>
+            <h1>Dashboard</h1>
+            <p>Resumen general del sistema</p>
+        </div>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_citas }}</div>
+            <div class="stat-label">Citas Agendadas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_examenes }}</div>
+            <div class="stat-label">Examenes Disponibles</div>
+        </div>
+        {% if current_user.rol_perfil.nombre in ['Administrador', 'Secretaria'] %}
+        <div class="stat-card">
+            <div class="stat-number">{{ total_facturas }}</div>
+            <div class="stat-label">Facturas Emitidas</div>
+        </div>
+        {% endif %}
+        <div class="stat-card">
+            <div class="stat-number">{{ total_pacientes }}</div>
+            <div class="stat-label">Pacientes Registrados</div>
+        </div>
+    </div>
+
+    <div class="page-header" style="margin-bottom: 16px;">
+        <div>
+            <h1>Modulos del Sistema</h1>
+            <p>Seleccione el modulo con el que desea trabajar</p>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        {% if current_user.rol_perfil.nombre in ['Administrador', 'Secretaria'] %}
+        <a href="{{ url_for('punto_de_venta') }}" class="dash-card">
+            <div class="dash-card-icon">
+                <i class='bx bx-cart'></i>
+            </div>
+            <div class="dash-card-title">Punto de Venta</div>
+            <div class="dash-card-desc">Registrar cobros de examenes y servicios a pacientes</div>
+        </a>
+        {% endif %}
+
+        <a href="{{ url_for('citas') }}" class="dash-card">
+            <div class="dash-card-icon">
+                <i class='bx bx-calendar'></i>
+            </div>
+            <div class="dash-card-title">Citas Medicas</div>
+            <div class="dash-card-desc">Agendar, editar y gestionar citas de los pacientes</div>
+            <div class="dash-card-count">{{ total_citas }}</div>
+            <div class="dash-card-count-label">Citas registradas</div>
+        </a>
+
+        {% if current_user.rol_perfil.nombre in ['Administrador', 'Secretaria'] %}
+        <a href="{{ url_for('consultas') }}" class="dash-card">
+            <div class="dash-card-icon">
+                <i class='bx bx-test-tube'></i>
+            </div>
+            <div class="dash-card-title">Examenes</div>
+            <div class="dash-card-desc">Administrar catalogo de examenes, precios y categorias</div>
+            <div class="dash-card-count">{{ total_examenes }}</div>
+            <div class="dash-card-count-label">Examenes disponibles</div>
+        </a>
+        {% endif %}
+
+        {% if current_user.rol_perfil.nombre in ['Administrador', 'Doctor'] %}
+        <a href="{{ url_for('buscar_historial') }}" class="dash-card">
+            <div class="dash-card-icon">
+                <i class='bx bx-folder-open'></i>
+            </div>
+            <div class="dash-card-title">Historial Clinico</div>
+            <div class="dash-card-desc">Buscar y registrar historias clinicas de pacientes</div>
+            <div class="dash-card-count">{{ total_pacientes }}</div>
+            <div class="dash-card-count-label">Pacientes registrados</div>
+        </a>
+        {% endif %}
+
+        {% if current_user.rol_perfil.nombre in ['Administrador', 'Secretaria'] %}
+        <a href="{{ url_for('reportes') }}" class="dash-card">
+            <div class="dash-card-icon">
+                <i class='bx bx-bar-chart-alt-2'></i>
+            </div>
+            <div class="dash-card-title">Reportes y Facturacion</div>
+            <div class="dash-card-desc">Consultar historial de cobros y exportar a Excel</div>
+            <div class="dash-card-count">{{ total_facturas }}</div>
+            <div class="dash-card-count-label">Facturas emitidas</div>
+        </a>
+        {% endif %}
+
+        {% if current_user.rol_perfil.nombre == 'Administrador' %}
+        <a href="{{ url_for('lista_usuarios') }}" class="dash-card" style="border-color: rgba(245,158,11,0.2);">
+            <div class="dash-card-icon" style="background: rgba(245,158,11,0.1); color: #f59e0b;">
+                <i class='bx bx-shield-quarter'></i>
+            </div>
+            <div class="dash-card-title">Gestión de Usuarios</div>
+            <div class="dash-card-desc">Administrar cuentas, roles y accesos del sistema</div>
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Citas Medicas | Sistema SIC{% endblock %}
+
+{% block content %}
+<div class="fadeIn">
+    <div class="page-header">
+        <div>
+            <h1>Agenda de Citas</h1>
+            <p>Gestion de citas medicas reservadas</p>
+        </div>
+        {% if current_user.rol_perfil.nombre in ['Administrador', 'Secretaria'] %}
+        <button class="btn btn-primary" id="btnAbrirModal">
+            <i class='bx bx-plus'></i> Nueva Cita
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="table-card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Paciente</th>
+                    <th>Cedula</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Estado</th>
+                    {% if current_user.rol_perfil.nombre in ['Administrador', 'Secretaria'] %}
+                    <th>Acciones</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% if citas %}
+                {% for cita in citas %}
+                <tr>
+                    <td class="td-bold">{{ cita.nombre_paciente }} {{ cita.apellido_paciente }}</td>
+                    <td>{{ cita.cedula or '---' }}</td>
+                    <td>{{ cita.fecha_cita.strftime('%d/%m/%Y') }}</td>
+                    <td class="td-blue">{{ cita.fecha_cita.strftime('%H:%M') }}</td>
+                    <td>
+                        {% set estado = (cita.estado or 'Pendiente').lower() %}
+                        <span class="badge {% if estado == 'pendiente' %}badge-pending{% elif estado == 'confirmada' %}badge-confirmed{% elif estado == 'cancelada' %}badge-cancelled{% else %}badge-pending{% endif %}">
+                            {{ cita.estado or 'Pendiente' }}
+                        </span>
+                    </td>
+                    {% if current_user.rol_perfil.nombre in ['Administrador', 'Secretaria'] %}
+                    <td>
+                        <div class="actions-cell">
+                            {% if cita.estado != 'Confirmada' %}
+                            <a href="{{ url_for('confirmar_cita', id=cita.id_cita) }}"
+                                class="btn btn-icon btn-success" title="Confirmar Cita"
+                                style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0;"
+                                onclick="return confirm('¿Confirmar cita de {{ cita.nombre_paciente }}? El paciente sera notificado.')">
+                                <i class='bx bx-check'></i>
+                            </a>
+                            {% endif %}
+                            {% if cita.estado != 'Cancelada' %}
+                            <a href="{{ url_for('rechazar_cita', id=cita.id_cita) }}"
+                                class="btn btn-icon btn-danger" title="Cancelar Cita"
+                                onclick="return confirm('¿Cancelar cita de {{ cita.nombre_paciente }}? El paciente sera notificado.')">
+                                <i class='bx bx-x'></i>
+                            </a>
+                            {% endif %}
+                            <button class="btn btn-icon btn-outline" title="Editar"
+                                onclick="abrirEditar('{{ cita.id_cita }}', '{{ cita.nombre_paciente }}', '{{ cita.apellido_paciente }}', '{{ cita.cedula or '' }}', '{{ cita.fecha_cita.strftime('%Y-%m-%d') }}', '{{ cita.fecha_cita.strftime('%H:%M') }}', '{{ cita.motivo or '' }}', '{{ cita.estado or 'Pendiente' }}')">
+                                <i class='bx bx-edit-alt'></i>
+                            </button>
+                            <a href="{{ url_for('eliminar_cita', id=cita.id_cita) }}" class="btn btn-icon btn-danger"
+                                title="Eliminar" onclick="return confirm('Desea eliminar esta cita?')">
+                                <i class='bx bx-trash'></i>
+                            </a>
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="6" class="table-empty">No hay citas reservadas para mostrar.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Nueva Cita -->
+<div id="modalCita" class="modal-overlay">
+    <div class="modal-box">
+        <h2>Agendar Nueva Cita</h2>
+        <form action="{{ url_for('nueva_cita') }}" method="POST">
+            <div class="form-group">
+                <label>Nombres del Paciente</label>
+                <input type="text" name="nombre" placeholder="Ej: Juan Antonio" required>
+            </div>
+            <div class="form-group">
+                <label>Apellidos del Paciente</label>
+                <input type="text" name="apellido" placeholder="Ej: Perez Rodriguez" required>
+            </div>
+            <div class="form-group">
+                <label>Cedula</label>
+                <input type="text" name="cedula" placeholder="Ej: 30.123.456">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" name="fecha" required>
+                </div>
+                <div class="form-group">
+                    <label>Hora</label>
+                    <input type="time" name="hora" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Motivo (Opcional)</label>
+                <textarea name="motivo" rows="2" placeholder="Breve descripcion..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-primary">Confirmar Cita</button>
+                <button type="button" id="btnCerrarModal" class="btn btn-outline">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Cita -->
+<div id="modalEditarCita" class="modal-overlay">
+    <div class="modal-box">
+        <h2>Editar Cita</h2>
+        <form id="formEditarCita" method="POST">
+            <div class="form-group">
+                <label>Nombres del Paciente</label>
+                <input type="text" name="nombre" id="edit_nombre" required>
+            </div>
+            <div class="form-group">
+                <label>Apellidos del Paciente</label>
+                <input type="text" name="apellido" id="edit_apellido" required>
+            </div>
+            <div class="form-group">
+                <label>Cedula</label>
+                <input type="text" name="cedula" id="edit_cedula">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" name="fecha" id="edit_fecha" required>
+                </div>
+                <div class="form-group">
+                    <label>Hora</label>
+                    <input type="time" name="hora" id="edit_hora" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Estado de la Cita</label>
+                <select name="estado" id="edit_estado">
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Confirmada">Confirmada</option>
+                    <option value="Cancelada">Cancelada</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Motivo / Observaciones</label>
+                <textarea name="motivo" id="edit_motivo" rows="2"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-primary">Actualizar Cita</button>
+                <button type="button" onclick="cerrarEditar()" class="btn btn-outline">Cerrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const modalNueva = document.getElementById("modalCita");
+    const modalEditar = document.getElementById("modalEditarCita");
+
+    document.getElementById("btnAbrirModal").onclick = () => modalNueva.style.display = "block";
+    document.getElementById("btnCerrarModal").onclick = () => modalNueva.style.display = "none";
+
+    function abrirEditar(id, nombres, apellidos, cedula, fecha, hora, motivo, estado) {
+        document.getElementById("formEditarCita").action = "/citas/editar/" + id;
+        document.getElementById("edit_nombre").value = nombres;
+        document.getElementById("edit_apellido").value = apellidos;
+        document.getElementById("edit_cedula").value = cedula;
+        document.getElementById("edit_fecha").value = fecha;
+        document.getElementById("edit_hora").value = hora;
+        document.getElementById("edit_motivo").value = motivo;
+        document.getElementById("edit_estado").value = estado;
+        modalEditar.style.display = "block";
+    }
+
+    function cerrarEditar() {
+        modalEditar.style.display = "none";
+    }
+
+    window.onclick = (event) => {
+        if (event.target == modalNueva) modalNueva.style.display = "none";
+        if (event.target == modalEditar) modalEditar.style.display = "none";
+    }
+</script>
+{% endblock %}

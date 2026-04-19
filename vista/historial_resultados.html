@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Historial Clinico | Sistema SIC{% endblock %}
+
+{% block content %}
+<div class="fadeIn">
+    <div class="page-header">
+        <div>
+            <h1>Buscar Historia Clinica</h1>
+            <p>Ingrese la Cedula o Nombre del Paciente</p>
+        </div>
+    </div>
+
+    <div class="search-bar">
+        <form action="{{ url_for('buscar_historial') }}" method="GET" style="display: flex; gap: 10px; flex: 1;">
+            <input type="text" name="query" placeholder="Ej: 12.345.678 o Juan Perez" value="{{ query }}" style="flex: 1;">
+            <button type="submit" class="btn btn-primary">
+                <i class='bx bx-search'></i> Buscar
+            </button>
+        </form>
+        <a href="{{ url_for('nuevo_historial') }}" class="btn btn-outline">
+            <i class='bx bx-plus'></i> Nuevo Historial
+        </a>
+    </div>
+
+    {% if query %}
+        {% if resultados %}
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cédula</th>
+                        <th>Nombre Completo</th>
+                        <th>Edad</th>
+                        <th style="text-align:center;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in resultados %}
+                    <tr>
+                        <td class="td-bold">{{ res.cedula }}</td>
+                        <td>{{ res.nombre_paciente }}</td>
+                        <td>{{ res.edad }} años</td>
+                        <td style="display:flex; gap:8px; justify-content:center;">
+                            <a href="{{ url_for('ver_ficha', id=res.id_historial) }}" class="btn btn-outline" title="Ver ficha">
+                                <i class='bx bx-file'></i> Ver
+                            </a>
+                            <a href="{{ url_for('editar_historial', id=res.id_historial) }}" class="btn btn-primary" title="Editar historial">
+                                <i class='bx bx-edit-alt'></i> Editar
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="card" style="text-align: center; padding: 48px;">
+            <i class='bx bx-search-alt' style="font-size: 48px; color: var(--gray-300);"></i>
+            <h3 style="margin-top: 16px; color: var(--gray-600);">No se encontraron registros para "{{ query }}"</h3>
+            <p style="color: var(--gray-400); margin-top: 4px;">Verifique los datos o registre un nuevo paciente.</p>
+        </div>
+        {% endif %}
+    {% else %}
+    <div class="card" style="text-align: center; padding: 48px;">
+        <i class='bx bx-search' style="font-size: 48px; color: var(--gray-300);"></i>
+        <p style="color: var(--gray-400); margin-top: 16px;">Use la barra de busqueda para encontrar una historia clinica.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

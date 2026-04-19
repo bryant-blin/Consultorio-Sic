@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema SIC{% endblock %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=1.2">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-topbar" style="display: none;">
+        <button class="menu-toggle" onclick="toggleSidebar()">
+            <i class='bx bx-menu'></i>
+        </button>
+        <div class="mobile-logo">
+            <span>Sistema SIC</span>
+        </div>
+        <div style="width: 40px;"></div> <!-- Spacer -->
+    </header>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="{{ url_for('static', filename='logo.png') }}" class="logo-header" alt="Logo">
+            <div class="sidebar-brand">
+                <span class="brand-name">CONSULTORIO DR. JAME DOS SANTOS NUÑEZ</span>
+                <span class="brand-sub">Consultorio</span>
+            </div>
+        </div>
+
+        <!-- Tasa BCV Global (ACTUALIZADO DINÁMICO) -->
+        <div class="dash-card" style="margin: 10px 12px; padding: 14px; cursor: default;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span
+                    style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--gray-400);">TASA
+                    OFICIAL BCV</span>
+                <button class="btn-refresh-rate" onclick="actualizarTasaGlobal()" title="Refrescar Tasa">
+                    <i class='bx bx-refresh' id="icon-refresh-tasa"></i>
+                </button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i class='bx bx-coin-stack' style="font-size: 22px; color: var(--blue-600);"></i>
+                <span id="rate-display-text" style="font-size: 16px; font-weight: 800; color: var(--gray-800);">1$ = {{
+                    "%.2f"|format(tasa_bcv) }} Bs.</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <span class="nav-section-title">Menu Principal</span>
+            <a href="{{ url_for('dashboard') }}"
+                class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class='bx bxs-dashboard'></i>
+                <span>Dashboard</span>
+            </a>
+
+            {% if current_user.rol_perfil.nombre == 'Administrador' %}
+            <a href="{{ url_for('lista_usuarios') }}"
+                class="nav-link {% if request.endpoint == 'lista_usuarios' %}active{% endif %}"
+                style="color: #f59e0b;">
+                <i class='bx bx-shield-quarter'></i>
+                <span>Usuarios</span>
+            </a>
+            {% endif %}
+
+            <a href="{{ url_for('lista_pacientes') }}"
+                class="nav-link {% if request.endpoint == 'lista_pacientes' %}active{% endif %}">
+                <i class='bx bx-group'></i>
+                <span>Pacientes</span>
+            </a>
+            {% if current_user.rol_perfil.nombre in ['Administrador', 'Secretaria'] %}
+            <a href="{{ url_for('punto_de_venta') }}"
+                class="nav-link {% if request.endpoint == 'punto_de_venta' %}active{% endif %}">
+                <i class='bx bx-cart'></i>
+                <span>Punto de Venta</span>
+            </a>
+            {% endif %}
+
+            <span class="nav-section-title">Gestion</span>
+            <a href="{{ url_for('citas') }}" class="nav-link {% if request.endpoint == 'citas' %}active{% endif %}">
+                <i class='bx bx-calendar'></i>
+                <span>Citas</span>
+            </a>
+            {% if current_user.rol_perfil.nombre in ['Administrador', 'Secretaria'] %}
+            <a href="{{ url_for('consultas') }}"
+                class="nav-link {% if request.endpoint == 'consultas' %}active{% endif %}">
+                <i class='bx bx-test-tube'></i>
+                <span>Examenes</span>
+            </a>
+            {% endif %}
+            {% if current_user.rol_perfil.nombre in ['Administrador', 'Doctor'] %}
+            <a href="{{ url_for('buscar_historial') }}"
+                class="nav-link {% if request.endpoint == 'buscar_historial' %}active{% endif %}">
+                <i class='bx bx-folder-open'></i>
+                <span>Historial Clinico</span>
+            </a>
+            {% endif %}
+            {% if current_user.rol_perfil.nombre in ['Administrador', 'Secretaria'] %}
+            <a href="{{ url_for('reportes') }}"
+                class="nav-link {% if request.endpoint == 'reportes' %}active{% endif %}">
+                <i class='bx bx-bar-chart-alt-2'></i>
+                <span>Reportes</span>
+            </a>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class='bx bx-user'></i>
+                </div>
+                <div class="user-details">
+                    <span class="user-name">{{ current_user.usuario }}</span>
+                    <span class="user-role">Conectado</span>
+                </div>
+            </div>
+            <a href="{{ url_for('auth_logout') }}" class="nav-link logout-link">
+                <i class='bx bx-log-out'></i>
+                <span>Cerrar Sesion</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+            <div class="flash-msg flash-{{ category }}">
+                <i
+                    class='bx {% if category == "success" %}bx-check-circle{% elif category == "error" %}bx-error-circle{% else %}bx-info-circle{% endif %}'></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        // LÓGICA DE ACTUALIZACIÓN DE TASA GLOBAL
+        async function actualizarTasaGlobal() {
+            const icon = document.getElementById('icon-refresh-tasa');
+            const text = document.getElementById('rate-display-text');
+            const posInput = document.getElementById('tasaBcvGlobal'); // Input oculto del POS si existe
+
+            icon.classList.add('bx-spin');
+
+            try {
+                const response = await fetch('/tasa/actualizar');
+                const data = await response.json();
+
+                if (data.tasa) {
+                    const nuevaTasa = data.tasa.toFixed(2);
+                    text.innerText = `1$ = ${nuevaTasa} Bs.`;
+
+                    // Si estamos en el POS, actualizar su input interno
+                    if (posInput) {
+                        posInput.value = data.tasa;
+                        // Forzar re-render del carrito si la función existe
+                        if (typeof renderCart === 'function') renderCart();
+                    }
+                }
+            } catch (error) {
+                console.error("Error al refrescar tasa:", error);
+            } finally {
+                setTimeout(() => icon.classList.remove('bx-spin'), 1000);
+            }
+        }
+
+        // CONTROL DEL MENÚ MÓVIL
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active');
+            
+            // Prevenir scroll cuando el menú está abierto
+            if (sidebar.classList.contains('mobile-open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Cerrar menú al hacer click en un link (Solo en móvil)
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    toggleSidebar();
+                }
+            });
+        });
+
+        // Actualizar automáticamente cada 60 minutos
+        setInterval(actualizarTasaGlobal, 1000 * 60 * 60);
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

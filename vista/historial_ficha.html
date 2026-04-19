@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historia Médica | {{ ficha.nombre_paciente }}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/historial.css') }}">
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+
+<body>
+    <div class="no-imprimir"
+        style="max-width: 210mm; margin: 15px auto; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; gap: 10px;">
+        <a href="{{ url_for('buscar_historial') }}"
+            style="color: #334155; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 5px;">
+            <i class='bx bx-left-arrow-alt' style="font-size: 20px;"></i> Volver al buscador
+        </a>
+        <div style="display:flex; gap:10px;">
+            <a href="{{ url_for('editar_historial', id=ficha.id_historial) }}"
+                style="background: linear-gradient(135deg,#6366f1,#8b5cf6); color: white; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; text-decoration: none;">
+                <i class='bx bx-edit-alt'></i> Editar Historial
+            </a>
+            <button onclick="window.print()"
+                style="background: #1e293b; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                <i class='bx bx-printer'></i> Imprimir Reporte
+            </button>
+        </div>
+    </div>
+
+    <div class="hoja-ficha">
+        <!-- MARCA DE AGUA -->
+        <img src="{{ url_for('static', filename='logo.png') }}" class="watermark" alt="Watermark">
+
+        <!-- ENCABEZADO INSTITUCIONAL -->
+        <header class="header-institucional">
+            <img src="{{ url_for('static', filename='logo.png') }}" class="logo-header" alt="Logo">
+            <div class="titulo-institucion">
+                <h2 style="color: #1e293b; margin-bottom: 2px;">CONSULTORIO DR. JAME DOS SANTOS NUÑEZ</h2>
+                <p>REPORTE DE HISTORIA MÉDICA</p>
+                <p style="font-size: 10px; margin-top: 5px;">Fecha de Impresión: {{ now.strftime('%d/%m/%Y %H:%M') if
+                    now else '' }}</p>
+            </div>
+            <div style="width: 80px;"></div> <!-- Espaciador para equilibrio -->
+        </header>
+
+        <div class="doc-title">
+            <h1>HISTORIA MÉDICA</h1>
+        </div>
+
+        <!-- 1. IDENTIFICACIÓN -->
+        <section class="seccion-formal">
+            <div class="seccion-title">1. Ficha de Identificación</div>
+            <div class="datos-grid">
+                <div class="dato-item">
+                    <span class="dato-label">Cédula:</span>
+                    <span class="dato-valor">{{ ficha.cedula }}</span>
+                </div>
+                <div class="dato-item">
+                    <span class="dato-label">Nombre:</span>
+                    <span class="dato-valor">{{ (ficha.nombre_paciente or '')|upper }}</span>
+                </div>
+                <div class="dato-item">
+                    <span class="dato-label">Edad:</span>
+                    <span class="dato-valor">{{ ficha.edad }} años</span>
+                </div>
+                <div class="dato-item">
+                    <span class="dato-label">Sexo:</span>
+                    <span class="dato-valor">{{ ficha.sexo or '-' }}</span>
+                </div>
+                <div class="dato-item">
+                    <span class="dato-label">F. Nac:</span>
+                    <span class="dato-valor">{{ ficha.fecha_nac if ficha.fecha_nac else '-' }}</span>
+                </div>
+                <div class="dato-item">
+                    <span class="dato-label">Teléfono:</span>
+                    <span class="dato-valor">{{ ficha.telefono or '-' }}</span>
+                </div>
+                <div class="dato-item" style="grid-column: span 2;">
+                    <span class="dato-label" style="min-width: 80px;">Dirección:</span>
+                    <span class="dato-valor">{{ ficha.direccion or 'Sin registrar' }}</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. SIGNOS VITALES -->
+        <section class="seccion-formal">
+            <div class="seccion-title">2. Signos Vitales y Somatometría</div>
+            <div class="datos-grid" style="grid-template-columns: repeat(3, 1fr); text-align: center;">
+                <div class="dato-item" style="justify-content: center; border-bottom: none;">
+                    <span class="dato-label">Altura (m):</span>
+                    <span class="dato-valor">{{ ficha.altura or '-' }}</span>
+                </div>
+                <div class="dato-item" style="justify-content: center; border-bottom: none;">
+                    <span class="dato-label">Peso (kg):</span>
+                    <span class="dato-valor">{{ ficha.peso or '-' }}</span>
+                </div>
+                <div class="dato-item" style="justify-content: center; border-bottom: none;">
+                    <span class="dato-label">Tensión:</span>
+                    <span class="dato-valor">{{ ficha.tension or '-' }}</span>
+                </div>
+            </div>
+            <div style="border-bottom: 2px solid #e2e8f0; margin-top: 5px;"></div>
+        </section>
+
+        <!-- 3. EVOLUCIÓN CLÍNICA -->
+        <section class="seccion-formal">
+            <div class="seccion-title">3. Antecedentes Personales</div>
+            <div class="bloque-texto">{{ ficha.antecedentes or 'Sin antecedentes de importancia registrados.' }}</div>
+        </section>
+
+        <section class="seccion-formal">
+            <div class="seccion-title">4. Enfermedad Actual / Motivo de Consulta</div>
+            <div class="bloque-texto">{{ ficha.enfermedad_actual or 'No se registra motivo de consulta.' }}</div>
+        </section>
+
+        <section class="seccion-formal">
+            <div class="seccion-title">5. Plan de Tratamiento e Indicaciones</div>
+            <div class="bloque-texto" style="font-weight: 600; color: #0f172a;">{{ ficha.indicaciones or 'Seguir control
+                médico según evolución.' }}</div>
+        </section>
+
+        {% if ficha.observaciones %}
+        <section class="seccion-formal">
+            <div class="seccion-title">6. Observaciones Adicionales</div>
+            <div class="bloque-texto">{{ ficha.observaciones }}</div>
+        </section>
+        {% endif %}
+
+        <!-- FIRMA -->
+        <footer class="firma-footer">
+            <div class="firma-wrap">
+                <div class="firma-linea"></div>
+                <p>Firma y Timbre del Médico Responsable</p>
+                <p style="font-size: 9px; margin-top: 5px; color: #94a3b8;">Sistema SIC v2.0 - Reporte Generado
+                    Electrónicamente</p>
+            </div>
+        </footer>
+    </div>
+</body>
+
+</html>

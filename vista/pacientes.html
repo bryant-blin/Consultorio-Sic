@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Pacientes | Sistema SIC{% endblock %}
+
+{% block content %}
+<div class="fadeIn">
+    <div class="page-header">
+        <div>
+            <h1>Gestión de Pacientes</h1>
+            <p>Listado y control de registros médicos</p>
+        </div>
+        {% if current_user.rol_perfil.nombre in ['Administrador', 'Secretaria'] %}
+        <button class="btn btn-primary" onclick="document.getElementById('modalNuevoPac').style.display='block'">
+            <i class='bx bx-user-plus'></i> Nuevo Paciente
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Buscador con Lupa -->
+    <div class="search-bar">
+        <form action="{{ url_for('lista_pacientes') }}" method="GET" style="display: flex; width: 100%; gap: 10px;">
+            <input type="hidden" name="select" value="{{ select }}">
+            <input type="text" name="query" placeholder="Buscar por cédula o nombre..." value="{{ query }}">
+            <button type="submit" class="btn btn-primary btn-icon">
+                <i class='bx bx-search'></i>
+            </button>
+        </form>
+    </div>
+
+    <div class="table-card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Cédula</th>
+                    <th>Nombre y Apellido</th>
+                    <th>Edad</th>
+                    <th>Teléfono</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pacientes %}
+                <tr {% if select=='true' %} class="selectable-row"
+                    onclick="window.location.href='{{ url_for('punto_de_venta', paciente=p.nombre_paciente) }}'" {%
+                    endif %}>
+                    <td class="td-bold">{{ p.cedula }}</td>
+                    <td>{{ p.nombre_paciente }}</td>
+                    <td>{{ p.edad or '--' }}</td>
+                    <td class="td-blue">{{ p.telefono or '--' }}</td>
+                    <td>
+                        <div class="actions-cell">
+                            {% if select == 'true' %}
+                            <a href="{{ url_for('punto_de_venta', paciente=p.nombre_paciente) }}"
+                                class="btn btn-success btn-icon" title="Seleccionar" onclick="event.stopPropagation()">
+                                <i class='bx bx-check'></i>
+                            </a>
+                            {% endif %}
+
+                            {% if current_user.rol_perfil.nombre in ['Administrador', 'Secretaria'] %}
+                            <button class="btn btn-icon btn-outline" title="Editar"
+                                onclick="event.stopPropagation(); abrirEditar('{{ p.id_historial }}', '{{ p.cedula }}', '{{ p.nombre_paciente }}', '{{ p.edad }}', '{{ p.telefono }}')">
+                                <i class='bx bx-edit-alt'></i>
+                            </button>
+                            {% endif %}
+
+                            {% if current_user.rol_perfil.nombre in ['Administrador', 'Doctor'] %}
+                            <a href="{{ url_for('ver_visor_3d', id=p.id_historial) }}" class="btn btn-icon btn-primary"
+                                title="Visor Biométrico 3D" style="background-color: #6366f1;">
+                                <i class='bx bx-body'></i>
+                            </a>
+                            {% endif %}
+
+                            {% if current_user.rol_perfil.nombre in ['Administrador', 'Secretaria'] %}
+                            <a href="{{ url_for('eliminar_paciente_crud', id=p.id_historial) }}"
+                                class="btn btn-icon btn-danger" title="Eliminar"
+                                onclick="event.stopPropagation(); return confirm('¿Eliminar registro?')">
+                                <i class='bx bx-trash'></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Nuevo Paciente -->
+<div id="modalNuevoPac" class="modal-overlay">
+    <div class="modal-box">
+        <h2>Registrar Nuevo Paciente</h2>
+        <form action="{{ url_for('nuevo_paciente_crud') }}" method="POST">
+            <div class="form-group"><label>Cédula</label><input type="text" name="cedula" required></div>
+            <div class="form-row">
+                <div class="form-group"><label>Nombre</label><input type="text" name="nombre" required></div>
+                <div class="form-group"><label>Apellido</label><input type="text" name="apellido" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Edad</label><input type="number" name="edad"></div>
+                <div class="form-group"><label>Teléfono</label><input type="text" name="telefono"></div>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                <button type="button" class="btn btn-outline"
+                    onclick="this.closest('.modal-overlay').style.display='none'">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar -->
+<div id="modalEditPac" class="modal-overlay">
+    <div class="modal-box">
+        <h2>Editar Paciente</h2>
+        <form id="formEdit" method="POST">
+            <div class="form-group"><label>Cédula</label><input type="text" name="cedula" id="e_ced"></div>
+            <div class="form-group"><label>Nombre Completo</label><input type="text" name="nombre_completo" id="e_nom">
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Edad</label><input type="number" name="edad" id="e_eda"></div>
+                <div class="form-group"><label>Teléfono</label><input type="text" name="telefono" id="e_tel"></div>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-primary">Actualizar</button>
+                <button type="button" class="btn btn-outline"
+                    onclick="this.closest('.modal-overlay').style.display='none'">Cerrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function abrirEditar(id, ced, nom, eda, tel) {
+        document.getElementById('formEdit').action = '/pacientes/editar/' + id;
+        document.getElementById('e_ced').value = ced;
+        document.getElementById('e_nom').value = nom;
+        document.getElementById('e_eda').value = eda;
+        document.getElementById('e_tel').value = tel;
+        document.getElementById('modalEditPac').style.display = 'block';
+    }
+</script>
+{% endblock %}

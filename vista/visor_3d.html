@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Visor 3D | {{ p.nombre_paciente }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/visor_3d.css') }}">
+
+<div class="visor-layout fadeIn">
+    <!-- COLUMNA IZQUIERDA: DATOS -->
+    <div class="data-panel">
+        <div class="card">
+            <h2 class="text-gradient">Resumen Biométrico</h2>
+            <div class="patient-header">
+                <h3>{{ p.nombre_paciente }}</h3>
+                <span class="badge">ID: {{ p.cedula }}</span>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <label>Peso Actual</label>
+                    <div class="value">{{ p.peso or '---' }} <small>kg</small></div>
+                </div>
+                <div class="stat-box cyan">
+                    <label>Altura</label>
+                    <div class="value">{{ p.altura or '---' }} <small>m</small></div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h4><i class='bx bx-plus-medical'></i> Enfermedad Actual</h4>
+                <p>{{ p.enfermedad_actual or 'Sin registro' }}</p>
+            </div>
+
+            <!-- CONTROLES DINÁMICOS -->
+            <div class="simulacion-panel">
+                <h4><i class='bx bx-line-chart'></i> Simulación en Tiempo Real</h4>
+                <div class="control-group">
+                    <label>Peso Simulado: <span id="weight-val">{{ p.peso or '70' }}</span> kg</label>
+                    <input type="range" id="weight-slider" min="40" max="150" value="{{ p.peso or '70' }}">
+                </div>
+                <div class="control-group">
+                    <label>Temperatura: <span id="temp-val">36.5</span> °C</label>
+                    <input type="range" id="temp-slider" min="35" max="42" step="0.1" value="36.5">
+                </div>
+            </div>
+
+            <a href="{{ url_for('lista_pacientes') }}" class="btn-back">
+                <i class='bx bx-left-arrow-alt'></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: MODELO 3D -->
+    <div class="canvas-panel">
+        <div id="three-container" data-sex="{{ p.sexo|lower if p.sexo else 'masculino' }}">
+            <div class="loading-overlay" id="loader">
+                <div class="spinner"></div>
+                <p>Cargando Anatomía...</p>
+            </div>
+        </div>
+        <div class="canvas-controls">
+            <button onclick="resetCamera()"><i class='bx bx-refresh'></i></button>
+            <button id="toggle-rotation"><i class='bx bx-sync'></i></button>
+            <button id="btn-skeleton" title="Ver Esqueleto" style="background: rgba(45, 212, 191, 0.2); color: #2dd4bf;">
+                <i class='bx bx-bone'></i>
+            </button>
+            <button id="btn-organs" title="Ver Órganos" style="background: rgba(167, 139, 250, 0.2); color: #a78bfa;">
+                <i class='bx bx-circle'></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Librerías 3D Locales (Soporte Offline) -->
+<script src="{{ url_for('static', filename='js/libs/three.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/libs/GLTFLoader.js') }}"></script>
+<script src="{{ url_for('static', filename='js/libs/OrbitControls.js') }}"></script>
+
+<!-- Visor Biométrico (Ya no es necesario type="module") -->
+<script src="{{ url_for('static', filename='js/visor_biometrico.js') }}"></script>
+{% endblock %}

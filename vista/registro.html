@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta | Sistema SIC</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/acceso.css') }}">
+    <style>
+        body { overflow-y: auto; align-items: flex-start; padding: 40px 20px; }
+        .contenedor-principal { max-width: 500px; margin: 0 auto; }
+        .tarjeta-login { padding: 44px 40px; }
+    </style>
+</head>
+<body>
+    <div class="contenedor-principal">
+        <div class="tarjeta-login">
+            <div class="cabecera">
+                <h1>Sistema <span>SIC</span></h1>
+                <p>Registro de nuevo usuario del sistema</p>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                {% for message in messages %}
+                  <div class="alerta">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+                <div class="grupo-entrada">
+                    <label>Nombre</label>
+                    <input type="text" name="nombre" placeholder="Ej. Juan" required>
+                </div>
+                <div class="grupo-entrada">
+                    <label>Apellidos</label>
+                    <input type="text" name="apellido" placeholder="Ej. Pérez" required>
+                </div>
+                <div class="grupo-entrada">
+                    <label>Correo Electrónico</label>
+                    <input type="email" name="correo" placeholder="correo@ejemplo.com" required>
+                </div>
+                <div class="grupo-entrada">
+                    <label>Nombre de Usuario</label>
+                    <input type="text" name="username" placeholder="usuario123" required>
+                </div>
+                <div class="grupo-entrada">
+                    <label>Contraseña</label>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+                <div class="grupo-entrada">
+                    <label>Rol / Cargo</label>
+                    <select name="rol" required>
+                        <option value="" disabled selected>Seleccione su cargo</option>
+                        {% for rol in roles %}
+                        <option value="{{ rol.id_rol }}">{{ rol.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <hr style="border:0; border-top: 1px solid rgba(255,255,255,0.07); margin: 22px 0;">
+
+                <div class="grupo-entrada">
+                    <label style="color: #ef4444;">🔑 Clave Maestra de Seguridad</label>
+                    <input type="password" name="master_key" placeholder="••••••••" required
+                        style="border-color: rgba(239,68,68,0.3);">
+                    <small style="color: rgba(255,255,255,0.35); font-size: 11px; margin-top: 6px; display: block;">
+                        Requerida para autorizar la creación de la cuenta.
+                    </small>
+                </div>
+
+                <button type="submit" class="boton-entrar">Finalizar Registro</button>
+            </form>
+
+            <div class="pie-login">
+                <a href="{{ url_for('auth_login') }}">← Volver al Inicio de Sesión</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,279 @@
+/* ═══════════════════════════════════════
+   VISOR 3D — Estilo coherente con el sistema
+   ═══════════════════════════════════════ */
+
+.visor-layout {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 24px;
+    height: calc(100vh - 120px);
+}
+
+/* ── Panel izquierdo heredado de .card (base.css) ── */
+.data-panel {
+    overflow-y: auto;
+    height: 100%;
+}
+
+.data-panel .card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 28px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+/* ── Cabecera del paciente ── */
+.patient-header {
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--gray-100, #f1f5f9);
+}
+
+.patient-header h3 {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--gray-800);
+    margin: 0 0 6px;
+    text-transform: capitalize;
+}
+
+.badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+    color: #6d28d9;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 3px 12px;
+    border-radius: 20px;
+    border: 1px solid #c4b5fd;
+}
+
+/* ── Título con gradiente ── */
+.text-gradient {
+    font-size: 22px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #6366f1, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0 0 14px;
+}
+
+/* ── Tarjetas de signos vitales ── */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.stat-box {
+    background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+    border: 1.5px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-align: center;
+}
+
+.stat-box.cyan {
+    background: linear-gradient(135deg, #ecfdf5, #f0fdfa);
+    border-color: #6ee7b7;
+}
+
+.stat-box label {
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--gray-500);
+    margin-bottom: 6px;
+}
+
+.stat-box .value {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--gray-800);
+}
+
+.stat-box .value small {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-500);
+}
+
+/* ── Sección título (igual que historial_nuevo) ── */
+.section-title-visor {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--blue-700, #1d4ed8);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--blue-100, #dbeafe);
+}
+.section-title-visor i { font-size: 16px; color: #3b82f6; }
+
+/* ── Info clínica ── */
+.info-section {
+    background: var(--gray-50, #f8fafc);
+    border: 1.5px solid var(--gray-200, #e2e8f0);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+}
+
+.info-section h4 {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--blue-700, #1d4ed8);
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin: 0 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.info-section p {
+    font-size: 13px;
+    color: var(--gray-600, #475569);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* ── Panel de simulación ── */
+.simulacion-panel {
+    background: linear-gradient(135deg, rgba(99,102,241,.06) 0%, rgba(168,85,247,.05) 100%);
+    border: 1.5px solid rgba(139,92,246,.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.simulacion-panel h4 {
+    font-size: 12px;
+    font-weight: 800;
+    color: #7c3aed;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin: 0 0 14px;
+}
+
+.control-group {
+    margin-bottom: 12px;
+}
+
+.control-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gray-600, #475569);
+    margin-bottom: 6px;
+}
+
+.control-group input[type="range"] {
+    width: 100%;
+    accent-color: #6366f1;
+    height: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* ── Botón volver ── */
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    background: var(--gray-100, #f1f5f9);
+    color: var(--gray-700, #334155);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1.5px solid var(--gray-200, #e2e8f0);
+    transition: background .2s, border-color .2s;
+    margin-top: auto;
+}
+.btn-back:hover {
+    background: var(--gray-200, #e2e8f0);
+    border-color: var(--gray-300);
+}
+
+/* ── Canvas del modelo 3D ── */
+.canvas-panel {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 40%, #1e293b 0%, #0f172a 100%);
+    border: 1.5px solid rgba(255,255,255,.07);
+    box-shadow: 0 8px 40px rgba(0,0,0,.3);
+}
+
+#three-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* ── Controles del canvas ── */
+.canvas-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.canvas-controls button {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.15);
+    background: rgba(255,255,255,.1);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s;
+}
+.canvas-controls button:hover { background: rgba(255,255,255,.2); }
+
+/* ── Loading overlay ── */
+.loading-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle, #1e293b, #0f172a);
+    color: rgba(255,255,255,.7);
+    font-size: 14px;
+    font-weight: 600;
+    gap: 16px;
+    z-index: 10;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255,255,255,.1);
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

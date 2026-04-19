@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+{% block title %}{% if paciente %}Editar Historial | {{ paciente.nombre_paciente }}{% else %}Nuevo Registro | Sistema SIC{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Modo Banner ── */
+    .modo-banner {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 22px;
+        border-radius: 14px;
+        margin-bottom: 28px;
+        font-weight: 700;
+        font-size: 15px;
+        animation: slideDown .4s ease;
+    }
+    .modo-banner.edicion {
+        background: linear-gradient(135deg, rgba(99,102,241,.15) 0%, rgba(139,92,246,.12) 100%);
+        border: 1.5px solid rgba(139,92,246,.35);
+        color: #7c3aed;
+    }
+    .modo-banner.nuevo {
+        background: linear-gradient(135deg, rgba(16,185,129,.12) 0%, rgba(5,150,105,.1) 100%);
+        border: 1.5px solid rgba(16,185,129,.35);
+        color: #059669;
+    }
+    .modo-banner i { font-size: 26px; }
+    .modo-banner .badge-id {
+        margin-left: auto;
+        background: rgba(0,0,0,.08);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ── Sección título ── */
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--blue-700);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 28px 0 18px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--blue-100, #dbeafe);
+    }
+    .section-title i { font-size: 18px; color: var(--blue-500); }
+
+    /* ── Grid de inputs ── */
+    .input-grid { display: grid; gap: 18px; }
+    .cols-2 { grid-template-columns: 1fr 1fr; }
+    .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .cols-1-2 { grid-template-columns: 1fr 2fr; }
+    .cols-2-1 { grid-template-columns: 2fr 1fr; }
+
+    /* ── Campo de formulario ── */
+    .fld label {
+        display: block;
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: .8px;
+        margin-bottom: 7px;
+    }
+    .fld input, .fld select, .fld textarea {
+        width: 100%;
+        padding: 11px 14px;
+        border-radius: 10px;
+        border: 1.5px solid var(--gray-200);
+        font-size: 14px;
+        font-family: inherit;
+        background: var(--gray-50);
+        color: var(--gray-800);
+        transition: border-color .2s, box-shadow .2s, background .2s;
+        box-sizing: border-box;
+    }
+    .fld input:focus, .fld select:focus, .fld textarea:focus {
+        outline: none;
+        border-color: var(--blue-500);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+    }
+    .fld textarea { resize: vertical; min-height: 90px; }
+
+    /* ── Campo cédula con buscador ── */
+    .cedula-row { display: flex; gap: 10px; align-items: stretch; }
+    .cedula-row input { flex: 1; }
+    #btnBuscar {
+        padding: 0 18px;
+        border-radius: 10px;
+        min-width: 48px;
+        white-space: nowrap;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* ── Vitales card ── */
+    .vital-card {
+        background: linear-gradient(135deg, var(--blue-50, #eff6ff) 0%, #f0f9ff 100%);
+        border: 1.5px solid var(--blue-100, #dbeafe);
+        border-radius: 12px;
+        padding: 16px 18px;
+        text-align: center;
+    }
+    .vital-card label {
+        display: block;
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--blue-600);
+        text-transform: uppercase;
+        letter-spacing: .8px;
+        margin-bottom: 8px;
+    }
+    .vital-card input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1.5px solid var(--blue-200, #bfdbfe);
+        background: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        text-align: center;
+        box-sizing: border-box;
+        transition: border-color .2s, box-shadow .2s;
+    }
+    .vital-card input:focus {
+        outline: none;
+        border-color: var(--blue-500);
+        box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+    }
+
+    /* ── Botones de acción ── */
+    .action-bar {
+        display: flex;
+        gap: 14px;
+        margin-top: 30px;
+        padding-top: 22px;
+        border-top: 2px dashed var(--gray-200);
+    }
+    .btn-save {
+        flex: 1;
+        height: 52px;
+        font-size: 15px;
+        font-weight: 800;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: transform .15s, box-shadow .15s;
+    }
+    .btn-save:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,130,246,.25); }
+    .btn-save.primary { background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); color: #fff; }
+    .btn-save.success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; }
+    .btn-cancel {
+        height: 52px;
+        padding: 0 24px;
+        border-radius: 12px;
+        border: 1.5px solid var(--gray-300);
+        background: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--gray-600);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: background .2s, border-color .2s;
+    }
+    .btn-cancel:hover { background: var(--gray-50); border-color: var(--gray-400); }
+
+    @media (max-width: 700px) {
+        .cols-2, .cols-3, .cols-1-2, .cols-2-1 { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fadeIn">
+    <div class="page-header">
+        <div>
+            <h1>{% if paciente %}Editar Historial Clínico{% else %}Registro Clínico Inteligente{% endif %}</h1>
+            <p>{% if paciente %}Modifique los datos y guarde los cambios{% else %}Complete o actualice los datos del paciente{% endif %}</p>
+        </div>
+        <a href="{{ url_for('buscar_historial') }}" class="btn btn-outline">
+            <i class='bx bx-arrow-back'></i> Volver
+        </a>
+    </div>
+
+    <div class="card">
+        <!-- ── Banner de modo ── -->
+        {% if paciente %}
+        <div class="modo-banner edicion">
+            <i class='bx bx-edit-alt'></i>
+            <div>
+                <div>Modo Edición</div>
+                <div style="font-size:13px; font-weight:500; opacity:.8; margin-top:2px;">{{ paciente.nombre_paciente }}</div>
+            </div>
+            <span class="badge-id">ID {{ paciente.cedula }}</span>
+        </div>
+        {% else %}
+        <div class="modo-banner nuevo">
+            <i class='bx bx-user-plus'></i>
+            <div>Modo Nuevo Registro — Busque por cédula para cargar datos existentes</div>
+        </div>
+        {% endif %}
+
+        <!-- ── FORMULARIO ── -->
+        <form action="{% if paciente %}{{ url_for('editar_historial', id=paciente.id_historial) }}{% else %}{{ url_for('nuevo_historial') }}{% endif %}"
+              method="POST" id="formHistorial">
+
+            <!-- SECCIÓN 1: IDENTIFICACIÓN -->
+            <div class="section-title">
+                <i class='bx bx-id-card'></i> Identificación del Paciente
+            </div>
+
+            <div class="input-grid cols-1-2" style="margin-bottom: 16px;">
+                <div class="fld">
+                    <label>Cédula de Identidad</label>
+                    <div class="cedula-row">
+                        <input type="text" name="cedula" id="cedulaInput"
+                               placeholder="Ej: 30821491" required
+                               value="{{ paciente.cedula if paciente else '' }}">
+                        {% if not paciente %}
+                        <button type="button" id="btnBuscar" class="btn btn-primary">
+                            <i class='bx bx-search-alt-2'></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="fld">
+                    <label>Nombre Completo</label>
+                    <input type="text" name="nombre" id="nombreInput"
+                           placeholder="Nombre completo del paciente" required
+                           value="{{ paciente.nombre_paciente if paciente else '' }}">
+                </div>
+            </div>
+
+            <div class="input-grid cols-3">
+                <div class="fld">
+                    <label>Edad (años)</label>
+                    <input type="number" name="edad" id="edadInput" placeholder="Ej: 35"
+                           value="{{ paciente.edad if paciente else '' }}">
+                </div>
+                <div class="fld">
+                    <label>Fecha de Nacimiento</label>
+                    <input type="date" name="fecha_nac" id="nacInput"
+                           value="{{ paciente.fecha_nac if paciente and paciente.fecha_nac else '' }}">
+                </div>
+                <div class="fld">
+                    <label>Género / Sexo</label>
+                    <select name="sexo" id="sexoInput">
+                        <option value="">Seleccione...</option>
+                        <option value="Masculino" {% if paciente and paciente.sexo == 'Masculino' %}selected{% endif %}>Masculino</option>
+                        <option value="Femenino"  {% if paciente and paciente.sexo == 'Femenino'  %}selected{% endif %}>Femenino</option>
+                        <option value="Otro"       {% if paciente and paciente.sexo == 'Otro'      %}selected{% endif %}>Otro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-grid cols-2" style="margin-top: 16px;">
+                <div class="fld">
+                    <label>Teléfono de Contacto</label>
+                    <input type="text" name="telefono" id="telInput" placeholder="Ej: 0414-1234567"
+                           value="{{ paciente.telefono if paciente else '' }}">
+                </div>
+                <div class="fld">
+                    <label>Dirección de Residencia</label>
+                    <input type="text" name="direccion" id="dirInput" placeholder="Dirección completa"
+                           value="{{ paciente.direccion if paciente else '' }}">
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: SIGNOS VITALES -->
+            <div class="section-title">
+                <i class='bx bx-heart-circle'></i> Signos Vitales y Somatometría
+            </div>
+
+            <div class="input-grid cols-3">
+                <div class="vital-card">
+                    <label><i class='bx bx-ruler' style="vertical-align:middle;"></i> Altura (m)</label>
+                    <input type="text" name="altura" id="altInput" placeholder="Ej: 1.75"
+                           value="{{ paciente.altura if paciente else '' }}">
+                </div>
+                <div class="vital-card">
+                    <label><i class='bx bx-dumbbell' style="vertical-align:middle;"></i> Peso (kg)</label>
+                    <input type="text" name="peso" id="pesoInput" placeholder="Ej: 72"
+                           value="{{ paciente.peso if paciente else '' }}">
+                </div>
+                <div class="vital-card">
+                    <label><i class='bx bx-pulse' style="vertical-align:middle;"></i> Tensión Arterial</label>
+                    <input type="text" name="tension" id="tensionInput" placeholder="Ej: 120/80"
+                           value="{{ paciente.tension if paciente else '' }}">
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: EVALUACIÓN MÉDICA -->
+            <div class="section-title">
+                <i class='bx bx-clipboard'></i> Evaluación Médica
+            </div>
+
+            <div class="input-grid cols-2">
+                <div class="fld">
+                    <label>Antecedentes Personales</label>
+                    <textarea name="antecedentes" id="antInput" rows="4" placeholder="Alergias, enfermedades crónicas, cirugías previas...">{{ paciente.antecedentes if paciente else '' }}</textarea>
+                </div>
+                <div class="fld">
+                    <label>Enfermedad Actual / Motivo de Consulta</label>
+                    <textarea name="enfermedad_actual" id="enfInput" rows="4" placeholder="Descripción de la consulta actual...">{{ paciente.enfermedad_actual if paciente else '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="fld" style="margin-top: 16px;">
+                <label>Indicaciones y Plan de Tratamiento</label>
+                <textarea name="indicaciones" id="indInput" rows="3" placeholder="Medicamentos, dosis, recomendaciones...">{{ paciente.indicaciones if paciente else '' }}</textarea>
+            </div>
+
+            <div class="fld" style="margin-top: 16px;">
+                <label>Observaciones Adicionales</label>
+                <textarea name="observaciones" id="obsInput" rows="2" placeholder="Notas extras del médico...">{{ paciente.observaciones if paciente else '' }}</textarea>
+            </div>
+
+            <!-- BOTONES DE ACCIÓN -->
+            <div class="action-bar">
+                <a href="{% if paciente %}{{ url_for('ver_ficha', id=paciente.id_historial) }}{% else %}{{ url_for('buscar_historial') }}{% endif %}"
+                   class="btn-cancel">
+                    <i class='bx bx-x'></i> Cancelar
+                </a>
+                <button type="submit" class="btn-save {% if paciente %}primary{% else %}success{% endif %}">
+                    <i class='bx {% if paciente %}bx-save{% else %}bx-user-check{% endif %}'></i>
+                    {% if paciente %}Guardar Cambios{% else %}Guardar Nuevo Registro{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnBuscar = document.getElementById('btnBuscar');
+    const cedulaInput = document.getElementById('cedulaInput');
+    if (!btnBuscar) return; // Modo edición: no hay buscador
+
+    async function buscarPaciente() {
+        const cedula = cedulaInput.value.trim();
+        if (!cedula) return;
+
+        btnBuscar.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>';
+        btnBuscar.disabled = true;
+
+        try {
+            const response = await fetch(`/api/paciente/${cedula}`);
+            const data = await response.json();
+
+            if (data.encontrado) {
+                document.getElementById('nombreInput').value    = data.nombre        || '';
+                document.getElementById('edadInput').value      = data.edad          || '';
+                document.getElementById('nacInput').value       = data.fecha_nac     || '';
+                document.getElementById('telInput').value       = data.telefono      || '';
+                document.getElementById('sexoInput').value      = data.sexo          || '';
+                document.getElementById('dirInput').value       = data.direccion     || '';
+                document.getElementById('altInput').value       = data.altura        || '';
+                document.getElementById('pesoInput').value      = data.peso          || '';
+                document.getElementById('tensionInput').value   = data.tension       || '';
+                document.getElementById('antInput').value       = data.antecedentes  || '';
+                document.getElementById('enfInput').value       = data.enfermedad_actual || '';
+                document.getElementById('indInput').value       = data.indicaciones  || '';
+                document.getElementById('obsInput').value       = data.observaciones || '';
+
+                cedulaInput.style.borderColor = '#10b981';
+                showToast('✅ Paciente encontrado — Datos cargados correctamente', 'success');
+            } else {
+                cedulaInput.style.borderColor = '#3b82f6';
+                const inputs = document.querySelectorAll('#formHistorial input:not(#cedulaInput), #formHistorial textarea');
+                inputs.forEach(i => i.value = '');
+                showToast('🆕 Nuevo paciente — Complete los datos', 'info');
+            }
+        } catch(e) {
+            console.error(e);
+            showToast('❌ Error al conectar con la base de datos', 'error');
+        } finally {
+            btnBuscar.innerHTML = '<i class="bx bx-search-alt-2"></i>';
+            btnBuscar.disabled = false;
+        }
+    }
+
+    function showToast(msg, type) {
+        const existing = document.getElementById('sic-toast');
+        if (existing) existing.remove();
+        const t = document.createElement('div');
+        t.id = 'sic-toast';
+        const colors = { success: '#10b981', info: '#3b82f6', error: '#ef4444' };
+        t.style.cssText = `
+            position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+            background: ${colors[type] || '#3b82f6'}; color: #fff;
+            padding: 14px 22px; border-radius: 12px; font-weight: 700; font-size: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,.2); animation: slideUp .3s ease;
+        `;
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    }
+
+    btnBuscar.addEventListener('click', buscarPaciente);
+    cedulaInput.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); buscarPaciente(); } });
+    cedulaInput.addEventListener('blur', function() { if (this.value.trim()) buscarPaciente(); });
+});
+</script>
+
+<style>
+@keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+</style>
+{% endblock %}
