@@ -104,7 +104,19 @@
                 <span>Historial Clinico</span>
             </a>
             {% endif %}
-            {% if current_user.rol_perfil.nombre in ['Administrador', 'Secretaria'] %}
+            {% if current_user.rol_perfil.nombre == 'Administrador' %}
+            <a href="{{ url_for('reportes') }}"
+                class="nav-link {% if request.endpoint == 'reportes' %}active{% endif %}">
+                <i class='bx bx-bar-chart-alt-2'></i>
+                <span>Reportes</span>
+            </a>
+            <a href="{{ url_for('gestionar_horarios') }}"
+                class="nav-link {% if request.endpoint == 'gestionar_horarios' %}active{% endif %}"
+                style="color: #10b981;">
+                <i class='bx bx-time-five'></i>
+                <span>Horarios Bot</span>
+            </a>
+            {% elif current_user.rol_perfil.nombre == 'Secretaria' %}
             <a href="{{ url_for('reportes') }}"
                 class="nav-link {% if request.endpoint == 'reportes' %}active{% endif %}">
                 <i class='bx bx-bar-chart-alt-2'></i>

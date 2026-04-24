@@ -114,3 +114,9 @@ class Configuracion(db.Model):
     tasa_bcv = db.Column(db.Numeric(10, 4), default=1.0) # Guardar con 4 decimales
     ultima_actualizacion = db.Column(db.DateTime, default=datetime.now)
 
+class HorarioDisponible(db.Model):
+    __tablename__ = 'horarios_disponibles'
+    id = db.Column(db.Integer, primary_key=True)
+    fecha = db.Column(db.Date, nullable=False)
+    hora = db.Column(db.Time, nullable=False)
+    ocupado = db.Column(db.Boolean, default=False) # True si ya alguien agendó esa hora

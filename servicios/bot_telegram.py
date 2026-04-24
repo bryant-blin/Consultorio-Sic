@@ -157,13 +157,49 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
                 user_states[chat_id]['step'] = 'WAITING_TIME'
                 bot.edit_message_text(MSJ["fecha_seleccionada"].format(fecha=result),
                                       chat_id, c.message.message_id, parse_mode='Markdown')
-                bot.send_message(chat_id, MSJ["preguntar_hora"], parse_mode='Markdown')
+                
+                # --- NUEVA LÓGICA: Mostrar botones de horas disponibles ---
+                from modelo.usuarios import HorarioDisponible
+                with app.app_context():
+                    fecha_obj = datetime.strptime(str(result), '%Y-%m-%d').date()
+                    slots = HorarioDisponible.query.filter_by(fecha=fecha_obj, ocupado=False).all()
+                    
+                    if not slots:
+                        bot.send_message(chat_id, "❌ Lo sentimos, no hay horarios disponibles habilitados por el administrador para esta fecha. Por favor elige otro día o consulta /start de nuevo.")
+                        return
+                    
+                    markup = types.InlineKeyboardMarkup(row_width=3)
+                    botones = [
+                        types.InlineKeyboardButton(s.hora.strftime('%H:%M'), callback_data=f"slot_{s.id}") 
+                        for s in slots
+                    ]
+                    markup.add(*botones)
+                    bot.send_message(chat_id, "⏰ Selecciona una de las horas disponibles:", reply_markup=markup)
             else:
                 bot.send_message(chat_id, MSJ["sesion_expirada"])
 
     @bot.callback_query_handler(func=lambda call: True)
     def responder_clicks(call):
         chat_id = call.message.chat.id
+        if call.data.startswith("slot_"):
+            slot_id = int(call.data.split("_")[1])
+            from modelo.usuarios import HorarioDisponible
+            with app.app_context():
+                slot = HorarioDisponible.query.get(slot_id)
+                if not slot or slot.ocupado:
+                    bot.answer_callback_query(call.id, "⚠️ Este horario ya no está disponible.")
+                    return
+                
+                user_states[chat_id]['datos']['hora'] = slot.hora.strftime('%H:%M')
+                user_states[chat_id]['datos']['slot_id'] = slot_id
+                user_states[chat_id]['step'] = 'WAITING_MOTIVO'
+                
+                bot.answer_callback_query(call.id, "Hora seleccionada")
+                bot.edit_message_text(f"⏰ Hora seleccionada: *{slot.hora.strftime('%H:%M')}*",
+                                      chat_id, call.message.message_id, parse_mode='Markdown')
+                bot.send_message(chat_id, MSJ["preguntar_motivo"], parse_mode='Markdown')
+            return
+
         if call.data.startswith("cancelar_cita_"):
             id_cita = int(call.data.split("_")[-1])
             with app.app_context():
@@ -499,6 +535,14 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
                         id_bot_sic=chat_id
                     )
                     db.session.add(nueva_cita)
+                    
+                    # --- MARCAR SLOT COMO OCUPADO ---
+                    if 'slot_id' in state['datos']:
+                        from modelo.usuarios import HorarioDisponible
+                        slot = HorarioDisponible.query.get(state['datos']['slot_id'])
+                        if slot:
+                            slot.ocupado = True
+                    
                     db.session.commit()
 
                     motivo_cita = state['datos'].get('motivo', '---').strip()

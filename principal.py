@@ -4,7 +4,7 @@ from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from flask_login import LoginManager, login_required, current_user
 from functools import wraps
-from modelo.usuarios import db, Login, Usuario, Rol, Historial_Medico, Cita, Examen, Categoria, Factura, PagoDetalle, Configuracion
+from modelo.usuarios import db, Login, Usuario, Rol, Historial_Medico, Cita, Examen, Categoria, Factura, PagoDetalle, Configuracion, HorarioDisponible
 from controladores.autenticacion import auth_login, auth_logout
 from datetime import datetime, date, time
 import os
@@ -1051,6 +1051,49 @@ def editar_usuario(id):
     db.session.commit()
     flash(f"Usuario '{u.usuario}' actualizado correctamente.", "success")
     return redirect(url_for('lista_usuarios'))
+    
+@app.route('/config/horarios', methods=['GET', 'POST'])
+@login_required
+@roles_required('Administrador')
+def gestionar_horarios():
+    if request.method == 'POST':
+        f_str = request.form.get('fecha')
+        h_str = request.form.get('hora')
+        
+        try:
+            # Convertir strings a objetos date/time de Python
+            fecha_obj = datetime.strptime(f_str, '%Y-%m-%d').date()
+            hora_obj = datetime.strptime(h_str, '%H:%M').time()
+            
+            # Evitar duplicados
+            existe = HorarioDisponible.query.filter_by(fecha=fecha_obj, hora=hora_obj).first()
+            if not existe:
+                nuevo = HorarioDisponible(fecha=fecha_obj, hora=hora_obj)
+                db.session.add(nuevo)
+                db.session.commit()
+                flash("Horario habilitado correctamente.", "success")
+            else:
+                flash("Ese horario ya existe.", "warning")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error al guardar: {e}", "error")
+
+    horarios = HorarioDisponible.query.order_by(HorarioDisponible.fecha.asc(), HorarioDisponible.hora.asc()).all()
+    return render_template('gestion_horarios.html', horarios=horarios, hoy=date.today())
+
+@app.route('/config/horarios/eliminar/<int:id>')
+@login_required
+@roles_required('Administrador')
+def eliminar_horario(id):
+    h = HorarioDisponible.query.get_or_404(id)
+    try:
+        db.session.delete(h)
+        db.session.commit()
+        flash("Horario eliminado del sistema.", "info")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error al eliminar: {e}", "error")
+    return redirect(url_for('gestionar_horarios'))
 
 
 # ═══════════════════════════════════════════════════════════
