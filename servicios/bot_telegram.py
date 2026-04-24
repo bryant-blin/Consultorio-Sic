@@ -268,17 +268,19 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
                 
                 hora_final = f"{h:02d}:{m:02d}"
                 
-                # --- VALIDACIÓN DE HORA PASADA ---
+                # --- VALIDACIÓN DE HORA PASADA (AJUSTADO A VENEZUELA UTC-4) ---
                 fecha_sel = user_states[chat_id]['datos']['fecha']
-                # Usamos strptime para convertir texto a objeto datetime
                 obj_fecha_hora = datetime.strptime(f"{fecha_sel} {hora_final}", "%Y-%m-%d %H:%M")
                 
-                if obj_fecha_hora < datetime.now():
+                # Render usa UTC, ajustamos a horario de Venezuela (-4h)
+                ahora_venezuela = datetime.now() - timedelta(hours=4)
+                
+                if obj_fecha_hora < ahora_venezuela:
                     bot.send_message(chat_id, "⚠️ *Esta hora ya ha pasado para el día de hoy.* ⏰\nPor favor, selecciona una hora diferente.", parse_mode='Markdown')
                     user_states[chat_id]['step'] = 'WAITING_TIME'
                     bot.send_message(chat_id, "⏰ Escribe de nuevo la hora que deseas (ejemplo: 4:30):")
                     return # Importante retornar para no avanzar al siguiente paso
-                # ---------------------------------
+                # -----------------------------------------------------------
 
                 user_states[chat_id]['datos']['hora'] = hora_final
                 user_states[chat_id]['step'] = 'WAITING_MOTIVO'
@@ -460,13 +462,14 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
                         f"{state['datos']['fecha']} {state['datos']['hora']}", '%Y-%m-%d %H:%M'
                     )
 
-                    # --- VALIDACIÓN EXTRA DE SEGURIDAD ---
-                    if obj_fecha < datetime.now():
+                    # --- VALIDACIÓN EXTRA DE SEGURIDAD (UTC-4) ---
+                    ahora_venezuela = datetime.now() - timedelta(hours=4)
+                    if obj_fecha < ahora_venezuela:
                         bot.send_message(chat_id, "❌ *Lo sentimos, el tiempo ha pasado.* \nPor favor, inicia de nuevo con /start para elegir una hora válida.", parse_mode='Markdown')
                         if chat_id in user_states:
                             del user_states[chat_id]
                         return
-                    # -------------------------------------
+                    # ---------------------------------------------
 
                     # ⚠️ VALIDACIÓN DE CONFLICTO
                     conflicto = Cita.query.filter_by(fecha_cita=obj_fecha).first()
