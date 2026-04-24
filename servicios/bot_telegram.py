@@ -246,6 +246,10 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
             state['step'] = 'WAITING_NAME'
             bot.edit_message_text("✏️ Escribe de nuevo tu *Nombre y Apellido*:", chat_id, call.message.message_id, parse_mode='Markdown')
 
+        elif call.data == "edit_cedula":
+            state['step'] = 'WAITING_CEDULA'
+            bot.edit_message_text("✏️ Escribe de nuevo tu *Cédula*:", chat_id, call.message.message_id, parse_mode='Markdown')
+
         elif call.data == "edit_edad":
             state['step'] = 'WAITING_AGE'
             bot.edit_message_text("✏️ Escribe de nuevo tu *Edad*:", chat_id, call.message.message_id, parse_mode='Markdown')
@@ -276,6 +280,7 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
                 ahora_venezuela = datetime.now() - timedelta(hours=4)
                 
                 if obj_fecha_hora < ahora_venezuela:
+                    bot.answer_callback_query(call.id, "⚠️ Hora inválida") # Detener el círculo de carga
                     bot.send_message(chat_id, "⚠️ *Esta hora ya ha pasado para el día de hoy.* ⏰\nPor favor, selecciona una hora diferente.", parse_mode='Markdown')
                     user_states[chat_id]['step'] = 'WAITING_TIME'
                     bot.send_message(chat_id, "⏰ Escribe de nuevo la hora que deseas (ejemplo: 4:30):")
