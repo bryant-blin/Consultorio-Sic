@@ -77,7 +77,7 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
     
     class BotExceptionHandler(telebot.ExceptionHandler):
         def handle(self, exception):
-            print(f"⚠️ Aviso del Bot: Micro-corte de red detectado y recuperado ({str(exception)[:40]}...)")
+            print(f"[AVISO] Aviso del Bot: Micro-corte de red detectado y recuperado ({str(exception)[:40]}...)")
             return True
             
     bot = telebot.TeleBot(TOKEN, exception_handler=BotExceptionHandler())
@@ -86,7 +86,7 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
     bot_global = bot
     admin_id_global = ADMIN_CHAT_ID
 
-    print(f"✅ SIC_Bot CONECTADO EXITOSAMENTE...")
+    print(f"[OK] SIC_Bot CONECTADO EXITOSAMENTE...")
     user_states = {}
 
     # ══════════════════════════════════
@@ -267,6 +267,19 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
                 if tipo == "am" and h == 12: h = 0
                 
                 hora_final = f"{h:02d}:{m:02d}"
+                
+                # --- VALIDACIÓN DE HORA PASADA ---
+                fecha_sel = user_states[chat_id]['datos']['fecha']
+                # Usamos strptime para convertir texto a objeto datetime
+                obj_fecha_hora = datetime.strptime(f"{fecha_sel} {hora_final}", "%Y-%m-%d %H:%M")
+                
+                if obj_fecha_hora < datetime.now():
+                    bot.send_message(chat_id, "⚠️ *Esta hora ya ha pasado para el día de hoy.* ⏰\nPor favor, selecciona una hora diferente.", parse_mode='Markdown')
+                    user_states[chat_id]['step'] = 'WAITING_TIME'
+                    bot.send_message(chat_id, "⏰ Escribe de nuevo la hora que deseas (ejemplo: 4:30):")
+                    return # Importante retornar para no avanzar al siguiente paso
+                # ---------------------------------
+
                 user_states[chat_id]['datos']['hora'] = hora_final
                 user_states[chat_id]['step'] = 'WAITING_MOTIVO'
                 
@@ -446,6 +459,14 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
                     obj_fecha = datetime.strptime(
                         f"{state['datos']['fecha']} {state['datos']['hora']}", '%Y-%m-%d %H:%M'
                     )
+
+                    # --- VALIDACIÓN EXTRA DE SEGURIDAD ---
+                    if obj_fecha < datetime.now():
+                        bot.send_message(chat_id, "❌ *Lo sentimos, el tiempo ha pasado.* \nPor favor, inicia de nuevo con /start para elegir una hora válida.", parse_mode='Markdown')
+                        if chat_id in user_states:
+                            del user_states[chat_id]
+                        return
+                    # -------------------------------------
 
                     # ⚠️ VALIDACIÓN DE CONFLICTO
                     conflicto = Cita.query.filter_by(fecha_cita=obj_fecha).first()

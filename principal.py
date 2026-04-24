@@ -24,7 +24,15 @@ from sqlalchemy import func
 from openpyxl.drawing.image import Image
 from sqlalchemy import func
 
-# Importar el servicio del Bot de Telegram
+if sys.platform == "win32":
+    try:
+        if hasattr(sys.stdout, 'reconfigure'):
+            sys.stdout.reconfigure(encoding='utf-8')
+        if hasattr(sys.stderr, 'reconfigure'):
+            sys.stderr.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
 from servicios.bot_telegram import start_bot_thread, notificar_staff, notificar_paciente
 
 def roles_required(*roles):
@@ -1088,11 +1096,21 @@ if __name__ == '__main__':
     except:
         pass
 
-    api = PywebviewAPI()
+    port = int(os.environ.get('PORT', 5000))
 
-    t = Thread(target=start_flask)
-    t.daemon = True
-    t.start()
+    if os.environ.get('RENDER'):
 
-    webview.create_window('Sistema SIC - Clinica', 'http://127.0.0.1:5000', width=1200, height=800, js_api=api)
-    webview.start(icon=resource_path('static/logo.png'))
+        print(f"[NUBE]: Arrancando servidor en puerto {port}...")
+        app.run(host='0.0.0.0', port=port)
+    else:
+        # MODO ESCRITORIO (Tu PC): Abrir ventana pywebview
+        print("[LOCAL]: Arrancando en modo escritorio...")
+        api = PywebviewAPI()
+
+        t = Thread(target=start_flask)
+        t.daemon = True
+        t.start()
+
+        if webview:
+            webview.create_window('Sistema SIC - Clinica', 'http://127.0.0.1:5000', width=1200, height=800, js_api=api)
+            webview.start(icon=resource_path('static/logo.png'))
