@@ -1,104 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Programación de Horarios Bot | Sistema SIC{% endblock %}
 
-{% block extra_css %}
-<!-- FullCalendar CSS -->
-<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css' rel='stylesheet' />
-<style>
-    :root {
-        --fc-border-color: #e2e8f0;
-        --fc-today-bg-color: rgba(59, 130, 246, 0.05);
-        --fc-button-bg-color: #3b82f6;
-        --fc-button-border-color: #3b82f6;
-        --fc-button-hover-bg-color: #2563eb;
-        --fc-button-active-bg-color: #1d4ed8;
-    }
-
-    .calendar-container {
-        background: white;
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-        margin-top: 20px;
-    }
-
-    .fc .fc-toolbar-title {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: var(--gray-800);
-    }
-
-    .fc .fc-button-primary {
-        text-transform: capitalize;
-        font-weight: 600;
-        padding: 8px 16px;
-        border-radius: 8px;
-    }
-
-    .fc-event {
-        cursor: pointer;
-        padding: 2px 5px;
-        border: none;
-        transition: transform 0.1s;
-    }
-
-    .fc-event:hover {
-        transform: scale(1.02);
-    }
-
-    .slot-available {
-        background-color: #10b981 !important; /* Green */
-        border-color: #10b981 !important;
-    }
-
-    .slot-occupied {
-        background-color: #ef4444 !important; /* Red */
-        border-color: #ef4444 !important;
-    }
-
-    .legend {
-        display: flex;
-        gap: 20px;
-        margin-bottom: 15px;
-        padding: 10px;
-        background: #f8fafc;
-        border-radius: 10px;
-        font-size: 13px;
-        font-weight: 600;
-    }
-
-    .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .color-box {
-        width: 15px;
-        height: 15px;
-        border-radius: 3px;
-    }
-
-    /* Estilo para los días no disponibles (amarillo suave) */
-    .fc-day-disabled {
-        background-color: #fef3c7 !important; /* Yellow 100 */
-    }
-
-    #btn-save-batch {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        z-index: 1000;
-        padding: 15px 30px;
-        border-radius: 50px;
-        font-weight: 700;
-        box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
-    }
-
-    .modal-schedule {
-        max-width: 400px;
-    }
-</style>
+<!-- FontAwesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<!-- Custom Modern Calendar CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/calendario.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -117,16 +23,16 @@
 
     <div class="legend">
         <div class="legend-item">
-            <div class="color-box" style="background: #10b981;"></div>
-            <span>Disponible (Verde)</span>
+            <div class="color-box" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"></div>
+            <span>Horarios Disponibles (Visibles en Bot)</span>
         </div>
         <div class="legend-item">
-            <div class="color-box" style="background: #fef3c7; border: 1px solid #fcd34d;"></div>
-            <span>No habilitado (Amarillo)</span>
+            <div class="color-box" style="background: #fffbeb; border: 1px solid #fde68a;"></div>
+            <span>Día sin programación</span>
         </div>
         <div class="legend-item">
-            <div class="color-box" style="background: #ef4444;"></div>
-            <span>Ya Agendado (Rojo)</span>
+            <div class="color-box" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);"></div>
+            <span>Horarios ya reservados</span>
         </div>
     </div>
 
@@ -195,8 +101,8 @@
             
             // Colorear el fondo de las celdas según disponibilidad
             dayCellDidMount: function(info) {
-                // Por defecto amarillo (no habilitado)
-                info.el.style.backgroundColor = '#fef3c7'; 
+                // Por defecto fondo crema suave (no habilitado)
+                info.el.style.backgroundColor = '#fffbeb'; 
             },
 
             dateClick: function(info) {
