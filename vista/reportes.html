@@ -57,6 +57,9 @@
              <button onclick="toggleStats()" class="btn btn-outline" id="btn-toggle-stats" style="border-color: var(--blue-400); color: var(--blue-600); padding: 8px 12px;">
                 <i class='bx bx-pie-chart-alt-2'></i> Ver Estadísticas
             </button>
+            <a href="{{ url_for('gestionar_horarios') }}" class="btn btn-outline" style="border-color: #10b981; color: #059669; padding: 8px 12px; text-decoration: none; display: flex; align-items: center; gap: 5px;">
+                <i class='bx bx-calendar-edit'></i> Programación
+            </a>
             <!-- Botón de finalizar ventas -->
             <button onclick="finalizarVentas()" class="btn btn-primary" id="btn-finalizar" style="background: #059669; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); padding: 8px 12px;">
                 <i class='bx bx-check-double'></i> Finalizar Ventas

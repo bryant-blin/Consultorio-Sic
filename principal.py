@@ -1052,48 +1052,74 @@ def editar_usuario(id):
     flash(f"Usuario '{u.usuario}' actualizado correctamente.", "success")
     return redirect(url_for('lista_usuarios'))
     
-@app.route('/config/horarios', methods=['GET', 'POST'])
+@app.route('/config/horarios')
 @login_required
 @roles_required('Administrador')
 def gestionar_horarios():
-    if request.method == 'POST':
-        f_str = request.form.get('fecha')
-        h_str = request.form.get('hora')
-        
-        try:
-            # Convertir strings a objetos date/time de Python
-            fecha_obj = datetime.strptime(f_str, '%Y-%m-%d').date()
-            hora_obj = datetime.strptime(h_str, '%H:%M').time()
-            
-            # Evitar duplicados
-            existe = HorarioDisponible.query.filter_by(fecha=fecha_obj, hora=hora_obj).first()
-            if not existe:
-                nuevo = HorarioDisponible(fecha=fecha_obj, hora=hora_obj)
-                db.session.add(nuevo)
-                db.session.commit()
-                flash("Horario habilitado correctamente.", "success")
-            else:
-                flash("Ese horario ya existe.", "warning")
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Error al guardar: {e}", "error")
+    return render_template('gestion_horarios.html')
 
-    horarios = HorarioDisponible.query.order_by(HorarioDisponible.fecha.asc(), HorarioDisponible.hora.asc()).all()
-    return render_template('gestion_horarios.html', horarios=horarios, hoy=date.today())
+@app.route('/api/horarios')
+@login_required
+def api_get_horarios():
+    horarios = HorarioDisponible.query.all()
+    eventos = []
+    for h in horarios:
+        start_dt = datetime.combine(h.fecha, h.hora)
+        end_dt = start_dt + timedelta(minutes=30)
+        eventos.append({
+            'id': h.id,
+            'title': 'OCUPADO' if h.ocupado else 'Disponible',
+            'start': start_dt.isoformat(),
+            'end': end_dt.isoformat(),
+            'className': 'slot-occupied' if h.ocupado else 'slot-available',
+            'color': '#ef4444' if h.ocupado else '#10b981',
+            'extendedProps': {
+                'ocupado': h.ocupado
+            }
+        })
+    return jsonify(eventos)
 
-@app.route('/config/horarios/eliminar/<int:id>')
+@app.route('/api/horarios/generar', methods=['POST'])
 @login_required
 @roles_required('Administrador')
-def eliminar_horario(id):
+def api_generar_horarios():
+    data = request.json
+    fecha_str = data.get('fecha')
+    inicio_str = data.get('inicio')
+    fin_str = data.get('fin')
+    intervalo = int(data.get('intervalo', 30))
+    try:
+        fecha_obj = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        hora_inicio = datetime.strptime(inicio_str, '%H:%M').time()
+        hora_fin = datetime.strptime(fin_str, '%H:%M').time()
+        actual = datetime.combine(fecha_obj, hora_inicio)
+        limite = datetime.combine(fecha_obj, hora_fin)
+        while actual < limite:
+            existe = HorarioDisponible.query.filter_by(fecha=fecha_obj, hora=actual.time()).first()
+            if not existe:
+                nuevo = HorarioDisponible(fecha=fecha_obj, hora=actual.time())
+                db.session.add(nuevo)
+            actual += timedelta(minutes=intervalo)
+        db.session.commit()
+        return jsonify({"status": "success", "message": "Horarios habilitados"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/horarios/eliminar/<int:id>', methods=['DELETE'])
+@login_required
+@roles_required('Administrador')
+def api_eliminar_horario(id):
     h = HorarioDisponible.query.get_or_404(id)
+    if h.ocupado:
+        return jsonify({"status": "error", "message": "No se puede eliminar un horario agendado"}), 400
     try:
         db.session.delete(h)
         db.session.commit()
-        flash("Horario eliminado del sistema.", "info")
+        return jsonify({"status": "success"})
     except Exception as e:
         db.session.rollback()
-        flash(f"Error al eliminar: {e}", "error")
-    return redirect(url_for('gestionar_horarios'))
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 # ═══════════════════════════════════════════════════════════
