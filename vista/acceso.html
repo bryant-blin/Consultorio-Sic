@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,21 +9,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/acceso.css') }}">
 </head>
+
 <body>
     <div class="contenedor-principal">
         <div class="tarjeta-login">
             <div class="cabecera">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="width: 80px; margin-bottom: 15px;">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo"
+                    style="width: 80px; margin-bottom: 15px;">
                 <h1>Sistema <span>SIC</span></h1>
                 <p>Bienvenido, ingrese sus credenciales</p>
             </div>
 
             {% with messages = get_flashed_messages() %}
-              {% if messages %}
-                {% for message in messages %}
-                  <div class="alerta">{{ message }}</div>
-                {% endfor %}
-              {% endif %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alerta">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
             {% endwith %}
 
             <form action="{{ url_for('auth_login') }}" method="POST">
@@ -36,16 +39,6 @@
                     <input type="password" id="password" name="password" placeholder="••••••••" required>
                 </div>
 
-                <div class="grupo-entrada">
-                    <label for="rol">Rol / Cargo</label>
-                    <select name="rol" id="rol" required>
-                        <option value="" disabled selected>Seleccione su rol</option>
-                        {% for rol in roles %}
-                        <option value="{{ rol.id_rol }}">{{ rol.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
                 <button type="submit" class="boton-entrar">Iniciar Sesión</button>
             </form>
 
@@ -56,4 +49,5 @@
         </div>
     </div>
 </body>
+
 </html>

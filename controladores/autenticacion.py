@@ -3,23 +3,21 @@ from flask_login import login_user, logout_user
 from modelo.usuarios import db, Login, Rol, Usuario
 
 def auth_login():
-    # Consultamos todos los roles para el select
     roles = Rol.query.all()
 
     if request.method == 'POST':
         user_input = request.form.get('username')
         pass_input = request.form.get('password')
-        rol_input = request.form.get('rol') # El ID del rol seleccionado
 
         # Buscamos en la tabla 'login'
-        user_auth = Login.query.filter_by(usuario=user_input, id_rol=rol_input).first()
+        user_auth = Login.query.filter_by(usuario=user_input).first()
 
         # Validación directa
         if user_auth and user_auth.contrasena == pass_input:
             login_user(user_auth)
             return redirect(url_for('dashboard'))
         
-        flash("Usuario, clave o rol incorrectos")
+        flash("Usuario o clave incorrectos")
     
     return render_template('acceso.html', roles=roles)
 

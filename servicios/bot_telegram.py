@@ -3,6 +3,7 @@ from telebot import types
 from datetime import datetime, timedelta
 import threading
 import os
+import time
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 
 DetailedTelegramCalendar.months['es'] = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
@@ -521,8 +522,12 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
                 except Exception as e:
                     db.session.rollback()
                     bot.send_message(chat_id, f"{MSJ['error_agendar']} {e}")
-
-    bot.infinity_polling()
+    while True:
+        try:
+            bot.infinity_polling(timeout=10, long_polling_timeout=5)
+        except Exception as e:
+            print(f"[AVISO]: El bot no tiene conexión o falló. Reintentando en 10s... ({e})")
+            time.sleep(10)
 
 
 # ═══════════════════════════════════════════════════════════
