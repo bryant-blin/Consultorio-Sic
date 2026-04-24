@@ -6,7 +6,7 @@ from flask_login import LoginManager, login_required, current_user
 from functools import wraps
 from modelo.usuarios import db, Login, Usuario, Rol, Historial_Medico, Cita, Examen, Categoria, Factura, PagoDetalle, Configuracion, HorarioDisponible
 from controladores.autenticacion import auth_login, auth_logout
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 import os
 import sys
 import urllib.parse
@@ -19,8 +19,6 @@ import uuid
 import requests
 from bs4 import BeautifulSoup
 from threading import Thread
-from openpyxl.drawing.image import Image
-from sqlalchemy import func
 from openpyxl.drawing.image import Image
 from sqlalchemy import func
 
