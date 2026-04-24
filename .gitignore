@@ -1,0 +1,21 @@
+# Archivos de respaldo de Base de Datos (Muy pesados)
+*.sql
+
+# Entornos virtuales
+venv/
+env/
+.env
+
+# Cache de Python
+__pycache__/
+*.pyc
+
+# Archivos de sistema y log
+*.log
+.vscode/
+.idea/
+instance/
+
+# Otros archivos locales
+*.bak
+dump.rdb
