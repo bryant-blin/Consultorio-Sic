@@ -55,7 +55,7 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
         "preguntar_ampm": "🕒 ¿La hora es *{hora}* AM o PM?",
         "preguntar_motivo": "¿Cuál es el *motivo* de tu consulta?",
         "horario_ocupado": "❌ Lo sentimos, ese horario (*{hora}*) ya está ocupado.\nPor favor vuelve a seleccionar una hora diferente.",
-        "cita_agendada": "✅ *¡Cita Agendada!*\n\n📅 Fecha: {fecha}\n⏰ Hora: {hora}\n💡 Motivo: {motivo}\n\nEscribe /micita para ver o cancelar tu cita.",
+        "cita_agendada": "✅ *¡espere un momento por favor....!*\n\n📅 Fecha: {fecha}\n⏰ Hora: {hora}\n💡 Motivo: {motivo}\n\nEscribe /micita para ver o cancelar tu cita.",
         "error_agendar": "❌ Error al agendar:",
         "cancelar_operacion": "Operación cancelada. Escribe /start cuando lo necesites.",
         "sesion_expirada": "⚠️ Sesión expirada o no iniciada. Por favor usa /start.",
