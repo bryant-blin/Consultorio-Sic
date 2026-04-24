@@ -1,6 +1,6 @@
 import telebot
 from telebot import types
-from datetime import datetime
+from datetime import datetime, timedelta
 import threading
 import os
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
