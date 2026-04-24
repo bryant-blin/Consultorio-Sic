@@ -1092,11 +1092,18 @@ def api_generar_horarios():
         hora_fin = datetime.strptime(fin_str, '%H:%M').time()
         actual = datetime.combine(fecha_obj, hora_inicio)
         limite = datetime.combine(fecha_obj, hora_fin)
+        # Ajuste de zona horaria para validación (Venezuela UTC-4)
+        ahora = datetime.now()
+        if os.environ.get('RENDER'):
+            ahora = ahora - timedelta(hours=4)
+
         while actual < limite:
-            existe = HorarioDisponible.query.filter_by(fecha=fecha_obj, hora=actual.time()).first()
-            if not existe:
-                nuevo = HorarioDisponible(fecha=fecha_obj, hora=actual.time())
-                db.session.add(nuevo)
+            # VALIDACIÓN: Solo generar el slot si la fecha/hora es mayor a "ahora"
+            if actual > ahora:
+                existe = HorarioDisponible.query.filter_by(fecha=fecha_obj, hora=actual.time()).first()
+                if not existe:
+                    nuevo = HorarioDisponible(fecha=fecha_obj, hora=actual.time())
+                    db.session.add(nuevo)
             actual += timedelta(minutes=intervalo)
         db.session.commit()
         return jsonify({"status": "success", "message": "Horarios habilitados"})
