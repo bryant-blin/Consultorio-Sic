@@ -1,6 +1,6 @@
 import telebot
 from telebot import types
-from datetime import datetime, timedelta
+from datetime import datetime
 import threading
 import os
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
@@ -276,10 +276,9 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
                 fecha_sel = user_states[chat_id]['datos']['fecha']
                 obj_fecha_hora = datetime.strptime(f"{fecha_sel} {hora_final}", "%Y-%m-%d %H:%M")
                 
-               ahora_venezuela = datetime.now() - timedelta(hours=4)
-print(f"DEBUG: Cliente eligio {obj_fecha_hora} | Servidor cree que es {ahora_venezuela}")
+                ahora_venezuela = datetime.now() - timedelta(hours=4)
+                print(f"DEBUG: Cliente eligio {obj_fecha_hora} | Servidor cree que es {ahora_venezuela}")
 
-                
                 if obj_fecha_hora < ahora_venezuela:
                     bot.answer_callback_query(call.id, "⚠️ Hora inválida") # Detener el círculo de carga
                     bot.send_message(chat_id, "⚠️ *Esta hora ya ha pasado para el día de hoy.* ⏰\nPor favor, selecciona una hora diferente.", parse_mode='Markdown')
