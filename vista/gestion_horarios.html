@@ -66,7 +66,7 @@
         </div>
 
         <div class="modal-actions" style="margin-top: 20px;">
-            <button type="button" onclick="generarSlots()" class="btn btn-primary" style="width: 100%;">Habilitar Rango</button>
+            <button type="button" id="btn-generar" onclick="generarSlots()" class="btn btn-primary" style="width: 100%;">Habilitar Rango</button>
             <button type="button" onclick="cerrarModal()" class="btn btn-outline" style="width: 100%; margin-top: 10px;">Cerrar</button>
         </div>
     </div>
@@ -84,8 +84,15 @@
         const calendarEl = document.getElementById('calendar');
         
         calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
+            initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
             locale: 'es',
+            windowResize: function(arg) {
+                if (window.innerWidth < 768) {
+                    calendar.changeView('listWeek');
+                } else {
+                    calendar.changeView('dayGridMonth');
+                }
+            },
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
@@ -102,11 +109,29 @@
             
             // Colorear el fondo de las celdas según disponibilidad
             dayCellDidMount: function(info) {
-                // Por defecto fondo crema suave (no habilitado)
-                info.el.style.backgroundColor = '#fffbeb'; 
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (info.date < today) {
+                    // Fechas pasadas en gris
+                    info.el.style.backgroundColor = '#f1f5f9';
+                    info.el.style.cursor = 'not-allowed';
+                } else {
+                    // Por defecto fondo crema suave (no habilitado)
+                    info.el.style.backgroundColor = '#fffbeb'; 
+                }
             },
 
             dateClick: function(info) {
+                const clickedDate = new Date(info.dateStr + 'T00:00:00');
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                if (clickedDate < today) {
+                    alert("No puedes habilitar horarios en fechas pasadas.");
+                    return;
+                }
+                
                 selectedDate = info.dateStr;
                 document.getElementById('modalDateStr').innerText = "Fecha: " + selectedDate;
                 document.getElementById('modalSlot').style.display = 'flex';
@@ -140,8 +165,12 @@
         const start = document.getElementById('time_start').value;
         const end = document.getElementById('time_end').value;
         const interval = document.getElementById('interval').value;
+        const btn = document.getElementById('btn-generar');
 
         if (!start || !end) return alert("Seleccione el rango de horas");
+
+        btn.innerText = 'Cargando...';
+        btn.disabled = true;
 
         try {
             const res = await fetch('/api/horarios/generar', {
@@ -163,6 +192,10 @@
             }
         } catch (e) {
             console.error(e);
+            alert("Error al contactar con el servidor");
+        } finally {
+            btn.innerText = 'Habilitar Rango';
+            btn.disabled = false;
         }
     }
 
