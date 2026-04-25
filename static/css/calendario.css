@@ -64,24 +64,13 @@
     box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
 }
 
-/* Estilo de los Slots (Eventos) */
+/* Estilo de los Slots (Eventos) - OCULTOS para mostrar solo dias */
 .fc-event {
-    border-radius: 8px !important;
-    border: none !important;
-    padding: 4px 8px !important;
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-    margin-bottom: 2px !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 5px !important;
+    display: none !important;
 }
 
-.fc-event:hover {
-    transform: scale(1.05) translateX(2px) !important;
-    z-index: 10 !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+.dia-con-horarios {
+    border-bottom: 4px solid var(--success-color) !important;
 }
 
 /* Disponible - Estilo Píldora Verde */
