@@ -5,6 +5,9 @@ import threading
 import os
 import time
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
+import io
+import psycopg2
+from openpyxl import Workbook
 
 DetailedTelegramCalendar.months['es'] = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
 DetailedTelegramCalendar.days_of_week['es'] = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"]
@@ -13,14 +16,11 @@ class CalendarioClinica(DetailedTelegramCalendar):
     first_step = 'm'  # Iniciar directamente pidiendo el MES, ignorando el Año
 
 def obtener_calendario():
-    # Solo permitir fechas desde HOY hasta el final del año actual
+    # Solo permitir fechas desde HOY hasta el final del año actua
     hoy = datetime.now().date()
     fin_de_ano = datetime.now().date().replace(month=12, day=31)
     return CalendarioClinica(locale='es', min_date=hoy, max_date=fin_de_ano)
 
-# ═══════════════════════════════════════════════════════════
-# FUNCIONES DE AYUDA (GENERADORES DE BOTONES)
-# ═══════════════════════════════════════════════════════════
 
 def crear_reloj():
     markup = types.InlineKeyboardMarkup(row_width=4)
@@ -30,10 +30,36 @@ def crear_reloj():
     return markup
 
 
-# ═══════════════════════════════════════════════════════════
-# FUNCIÓN PRINCIPAL DEL BOT
-# ═══════════════════════════════════════════════════════════
+def enviar_reporte(message):
+    try:
+        conn = psycopg2.connect("postgresql://neondb_owner:npg_XrCifF4cP0ju@ep-icy-block-aesdmdyu-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
+        cur = conn.cursor()
+        cur.execute("SELECT nombre_paciente, cedula, telefono FROM historial_medico;")
+        filas = cur.fetchall()
+    
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["Nombre", "Cédula", "Teléfono"])  # Cabeceras
+        for fila in filas:
+            ws.append(list(fila)) 
 
+        archivo = io.BytesIO()
+        wb.save(archivo)
+        archivo.seek(0)
+
+        archivo.name = "reporte_prueba.xlsx"
+
+        if bot_global:
+            bot_global.send_document(message.chat.id, archivo, caption="aca tienes madafaca.")
+
+        cur.close ()
+        conn.close()
+    
+    except Exception as e:
+        print(f"Error al enviar el reporte: {e}")
+
+        bot_global.send_message(message.chat.id, "no funciono papu.")
+    
 def iniciar_bot_sic(app, db, Cita, Historial_Medico):
     # Token dinámico: Usa variable de entorno o el token manual como respaldo
     TOKEN = os.environ.get('TELEGRAM_TOKEN', "8758265776:AAHRTZh5HbsjrvWZSaNpiygoZHnRR4h4ANE")
