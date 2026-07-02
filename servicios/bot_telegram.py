@@ -465,14 +465,15 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
 
             # PASO 3: MENÚ PRINCIPAL
             elif texto in ["📅 Agendar Cita", "si", "sí", "agendar", "Si", "Sí", "Agendar"]:
-            elif texto =="pedir reporte":
-                enviar_reporte(message)
                 state['step'] = 'WAITING_DATE'
                 calendar, cal_step = obtener_calendario().build()
                 pasos_es = {"year": "Año", "month": "Mes", "day": "Día"}
                 paso_inicial = pasos_es.get(LSTEP[cal_step], LSTEP[cal_step])
                 bot.send_message(chat_id, MSJ["seleccionar_paso"].format(paso=paso_inicial),
                                  reply_markup=calendar, parse_mode='Markdown')
+
+            elif texto =="pedir reporte":      
+                enviar_reporte(message)              
 
             # PASO 4: FECHA (fallback texto)
             elif step == 'WAITING_DATE':
