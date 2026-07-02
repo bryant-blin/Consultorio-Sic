@@ -139,7 +139,11 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
                 respuesta += f"⏰ {hora} — {c.nombre_paciente} {c.apellido_paciente} ({c.estado})\n"
             bot.send_message(chat_id, respuesta, parse_mode='Markdown')
 
-    @bot.message_handler(commands=['micita'])
+    @bot.message_handler(commands=['reporte'])
+    def trigger_reporte(message):
+        enviar_reporte(message)
+
+    @bot.message_handler(commands=['mi_cita'])
     def ver_mi_cita(message):
         chat_id = message.chat.id
         with app.app_context():
@@ -406,7 +410,7 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
                     state['datos']['nombre'] = paciente.nombre_paciente
                     state['step'] = 'SHOW_MENU'
                     markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-                    markup.add("📅 Agendar Cita", "❌ Salir")
+                    markup.add("📅 Agendar Cita","pedir reporte", "❌ Salir")
                     bot.send_message(chat_id,
                         MSJ["hola_paciente"].format(nombre=paciente.nombre_paciente),
                         reply_markup=markup, parse_mode='Markdown')
@@ -461,6 +465,8 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
 
             # PASO 3: MENÚ PRINCIPAL
             elif texto in ["📅 Agendar Cita", "si", "sí", "agendar", "Si", "Sí", "Agendar"]:
+            elif texto =="pedir reporte":
+                enviar_reporte(message)
                 state['step'] = 'WAITING_DATE'
                 calendar, cal_step = obtener_calendario().build()
                 pasos_es = {"year": "Año", "month": "Mes", "day": "Día"}

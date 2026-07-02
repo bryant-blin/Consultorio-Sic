@@ -120,3 +120,13 @@ class HorarioDisponible(db.Model):
     fecha = db.Column(db.Date, nullable=False)
     hora = db.Column(db.Time, nullable=False)
     ocupado = db.Column(db.Boolean, default=False) # True si ya alguien agendó esa hora
+
+    class Sessiones(db.Model):
+        __tablename__ = 'sessiones'
+        id_session = db.Column(db.Integer, primary_key=True)
+        id_usuario = db.Column(db.Integer, db.ForeignKey('usuario.id_usuario'))
+        fecha = db.Column(db.Date, nullable=False)
+        hora = db.Column(db.Time, nullable=False)
+        acciones = db.Column(db.Text)
+    
+
