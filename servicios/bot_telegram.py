@@ -45,7 +45,7 @@ def enviar_reporte(message):
             prueba_madafaca = prueba_madafaca + f"tabla: {fila[0]}, columna: {fila[1]}\n"
 
         instruccion = f"Base de datos: \n{prueba_madafaca}\ngenera solo la consulta sql para la peticion:{message.text}. sin markdown."
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         respuesta = model.generate_content(instruccion)
         consulta = respuesta.text.replace("```sql", "").replace("```", "").strip()
         cur.execute(consulta)
