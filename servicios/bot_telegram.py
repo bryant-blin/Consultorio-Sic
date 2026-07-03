@@ -8,6 +8,9 @@ from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 import io
 import psycopg2
 from openpyxl import Workbook
+import google.generativeai as genai
+
+genai.configure(api_key="AQ.Ab8RN6L9E0IO0wuS3XupTXwj5-9KdgnNBjKU6-Or4PoZMUeYQQ")
 
 DetailedTelegramCalendar.months['es'] = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
 DetailedTelegramCalendar.days_of_week['es'] = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"]
@@ -34,12 +37,23 @@ def enviar_reporte(message):
     try:
         conn = psycopg2.connect("postgresql://neondb_owner:npg_XrCifF4cP0ju@ep-icy-block-aesdmdyu-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
         cur = conn.cursor()
-        cur.execute("SELECT nombre_paciente, cedula, telefono FROM historial_medico;")
+        cur.execute("select table_name, column_name from information_schema.columns where table_schema = 'public';")
+        filas_esquema = cur.fetchall()
+
+        prueba_madafaca = "vamos a ver si funciona esta madafaca:\n"
+        for fila in filas_esquema:
+            prueba_madafaca = prueba_madafaca + f"tabla: {fila[0]}, columna: {fila[1]}\n"
+
+        instruccion = f"Base de datos: \n{prueba_madafaca}\ngenera solo la consulta sql para la peticion:{message.text}. sin markdown."
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        respuesta = model.generate_content(instruccion)
+        consulta = respuesta.text.replace("```sql", "").replace("```", "").strip()
+        cur.execute(consulta)
         filas = cur.fetchall()
-    
+        columnas = [desc[0] for desc in cur.description]
         wb = Workbook()
         ws = wb.active
-        ws.append(["Nombre", "Cédula", "Teléfono"])  # Cabeceras
+        ws.append(columnas)
         for fila in filas:
             ws.append(list(fila)) 
 
