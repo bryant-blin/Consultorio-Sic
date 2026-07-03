@@ -8,11 +8,14 @@ from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 import io
 import psycopg2
 from openpyxl import Workbook
-import google.generativeai as genai
+import openai
 
-LLAVE = "AQ.Ab8RN6LSqMVK5EY0UkUatoyxFLV0pH8HWZ3ktQZMm61XzSXXLw"
+LLAVE = "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"
 
-genai.configure(api_key=LLAVE)
+client = openai.OpenAI(
+    base_url="https://api.groq.com/openai/v1",
+    api_key=LLAVE
+)
 
 DetailedTelegramCalendar.months['es'] = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
 DetailedTelegramCalendar.days_of_week['es'] = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"]
@@ -47,9 +50,9 @@ def enviar_reporte(message):
             prueba_madafaca = prueba_madafaca + f"tabla: {fila[0]}, columna: {fila[1]}\n"
 
         instruccion = f"Base de datos: \n{prueba_madafaca}\ngenera solo la consulta sql para la peticion:{message.text}. sin markdown."
-        model = genai.GenerativeModel('gemini-2.0-flash-lite')
-        respuesta = model.generate_content(instruccion)
-        consulta = respuesta.text.replace("```sql", "").replace("```", "").strip()
+        model = "openai/gpt-oss-20b"
+        respuesta = client.chat.completions.create( model= "openai/gpt-oss-20b", messages=[{"role": "user", "content": instruccion}])
+        consulta = respuesta.choices[0].message.content.replace("```sql","").replace("```","").strip()
         cur.execute(consulta)
         filas = cur.fetchall()
         columnas = [desc[0] for desc in cur.description]

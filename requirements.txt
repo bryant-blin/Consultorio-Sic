@@ -9,4 +9,5 @@ pyTelegramBotAPI
 python-telegram-bot-calendar
 gunicorn
 python-dotenv
-google-generativeai
+openai
+
