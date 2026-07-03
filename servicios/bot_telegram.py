@@ -492,9 +492,13 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
                                  reply_markup=calendar, parse_mode='Markdown')
 
             elif texto =="pedir reporte":      
-                enviar_reporte(message)              
+                state['step'] = 'WAITING_REPORTE'       
+                bot.send_message(chat_id, "que ladilla pana dime que quieres joder:", parse_mode='Markdown')      
 
-            # PASO 4: FECHA (fallback texto)
+            elif step == 'WAITING_REPORTE':
+                enviar_reporte(message)
+                state['step'] = 'SHOW_MENU'
+
             elif step == 'WAITING_DATE':
                 try:
                     datetime.strptime(texto, '%Y-%m-%d')
