@@ -10,7 +10,7 @@ import psycopg2
 from openpyxl import Workbook
 import google.generativeai as genai
 
-genai.configure(api_key="AQ.Ab8RN6L9E0IO0wuS3XupTXwj5-9KdgnNBjKU6-Or4PoZMUeYQQ")
+genai.configure(api_key="AQ.Ab8RN6I20AT8rlirEZeXtSBE7ZhThC0mkyfwwxr4I5VNESrAjA")
 
 DetailedTelegramCalendar.months['es'] = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
 DetailedTelegramCalendar.days_of_week['es'] = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"]
