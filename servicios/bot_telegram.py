@@ -50,8 +50,8 @@ def enviar_reporte(message):
             prueba_madafaca = prueba_madafaca + f"tabla: {fila[0]}, columna: {fila[1]}\n"
 
         instruccion = f"Base de datos: \n{prueba_madafaca}\ngenera solo la consulta sql para la peticion:{message.text}. sin markdown."
-        model = "openai/gpt-oss-20b"
-        respuesta = client.chat.completions.create( model= "openai/gpt-oss-20b", messages=[{"role": "user", "content": instruccion}])
+        model = "llama-3.3-70b-versatile"
+        respuesta = client.chat.completions.create( model=model, messages=[{"role": "user", "content": instruccion}])
         consulta = respuesta.choices[0].message.content.replace("```sql","").replace("```","").strip()
         cur.execute(consulta)
         filas = cur.fetchall()
