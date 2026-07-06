@@ -45,11 +45,11 @@ def enviar_reporte(message):
         cur.execute("select t.table_name || '(' || string_agg(c.column_name, ', ') || ')'from information_schema.tables t join information_schema.columns c on t.table_name = c.table_name where t.table_schema = 'public' and t.table_type = 'BASE TABLE' group by t.table_name;")
         filas_esquema = cur.fetchall()
 
-        prueba_madafaca = "vamos a ver si funciona esta madafaca:\n"
+        prueba = "prueba del esquema de base de datos:\n"
         for fila in filas_esquema:
-            prueba_madafaca += f"tabla: {fila[0]}\n"
+            prueba += f"\n tabla: {fila[0]}\n"
 
-        instruccion = (f"\neres un experto en sql,tienes acceso al siguiente esquema de base de datos: {prueba_madafaca}\n"+ f"el usuario solicita:\"{message.text}\"\n\n"+ f"traduce la solicitud a una consulta sql valida."+ f"interpreta plurales y singulares y sinonimos de forma inteligente."+ f"devuelve solo  el codigo sql , sin explicaciones ni markdown.")
+        instruccion = (f"\nEres un experto en sql,tienes acceso al siguiente esquema de base de datos: {prueba}\n"+ f"el usuario solicita:\"{message.text}\"\n\n"+ f"traduce la solicitud a una consulta sql valida."+ f"interpreta plurales y singulares y sinonimos de forma inteligente."+ f"devuelve solo  el codigo sql , sin explicaciones ni markdown.")
         model = "llama-3.3-70b-versatile"
         respuesta = client.chat.completions.create( model=model, messages=[{"role": "user", "content": instruccion}])
         consulta = respuesta.choices[0].message.content.replace("```sql","").replace("```","").strip()
@@ -69,7 +69,7 @@ def enviar_reporte(message):
         archivo.name = "reporte_prueba.xlsx"
 
         if bot_global:
-            bot_global.send_document(message.chat.id, archivo, caption="aca tienes madafaca.")
+            bot_global.send_document(message.chat.id, archivo, caption="te puedo ayudar en algo mas?.")
 
         cur.close ()
         conn.close()
@@ -77,7 +77,7 @@ def enviar_reporte(message):
     except Exception as e:
         print(f"Error al enviar el reporte: {e}")
 
-        bot_global.send_message(message.chat.id, "no funciono papu.")
+        bot_global.send_message(message.chat.id, "no funciono intenta de nuevo.")
     
 def iniciar_bot_sic(app, db, Cita, Historial_Medico):
     # Token dinámico: Usa variable de entorno o el token manual como respaldo
@@ -493,7 +493,7 @@ def iniciar_bot_sic(app, db, Cita, Historial_Medico):
 
             elif texto =="pedir reporte":      
                 state['step'] = 'WAITING_REPORTE'       
-                bot.send_message(chat_id, "que ladilla pana dime que quieres joder:", parse_mode='Markdown')      
+                bot.send_message(chat_id, "que deseas consultar?:", parse_mode='Markdown')      
 
             elif step == 'WAITING_REPORTE':
                 enviar_reporte(message)
