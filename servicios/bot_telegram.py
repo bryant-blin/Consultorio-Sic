@@ -42,14 +42,14 @@ def enviar_reporte(message):
     try:
         conn = psycopg2.connect("postgresql://neondb_owner:npg_XrCifF4cP0ju@ep-icy-block-aesdmdyu-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
         cur = conn.cursor()
-        cur.execute("select table_name, column_name from information_schema.columns where table_schema = 'public';")
+        cur.execute("select t.table_name || '(' || string_agg(c.column_name, ', ') || ')'from information_schema.tables t join information_schema.columns c on t.table_name = c.table_name where t.table_schema = 'public' and t.table_type = 'BASE TABLE' group by t.table_name;")
         filas_esquema = cur.fetchall()
 
         prueba_madafaca = "vamos a ver si funciona esta madafaca:\n"
         for fila in filas_esquema:
-            prueba_madafaca = prueba_madafaca + f"tabla: {fila[0]}, columna: {fila[1]}\n"
+            prueba_madafaca += f"tabla: {fila[0]}\n"
 
-        instruccion = f"Base de datos: \n{prueba_madafaca}\ngenera solo la consulta sql para la peticion:{message.text}. sin markdown."
+        instruccion = (f"\neres un experto en sql,tienes acceso al siguiente esquema de base de datos: {prueba_madafaca}\n"+ f"el usuario solicita:\"{message.text}\"\n\n"+ f"traduce la solicitud a una consulta sql valida."+ f"interpreta plurales y singulares y sinonimos de forma inteligente."+ f"devuelve solo  el codigo sql , sin explicaciones ni markdown.")
         model = "llama-3.3-70b-versatile"
         respuesta = client.chat.completions.create( model=model, messages=[{"role": "user", "content": instruccion}])
         consulta = respuesta.choices[0].message.content.replace("```sql","").replace("```","").strip()
